@@ -170,8 +170,11 @@ export const useJobStore = create<JobState>((set, get) => ({
       const applications = await apiClient.get<JobApplication[]>('/jobs/my-applications')
       console.debug(`[JOB STORE] getMyApplications received ${applications.length} applications`)
       set({ myApplications: applications })
-    } catch (error) {
-      console.error("Error getting my applications:", error)
+    } catch (error: any) {
+      // Silenciar error 403 (usuario no tiene permisos o no es candidato)
+      if (error?.response?.status !== 403) {
+        console.error("Error loading user applications:", error)
+      }
       set({ myApplications: [] })
     }
   },

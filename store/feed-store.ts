@@ -26,15 +26,14 @@ export const useFeedStore = create<FeedState>((set, get) => ({
 
   createPost: async (content: string, type: "TEXT" | "IMAGE" | "VIDEO" = "TEXT", imageUrl?: string) => {
     try {
-      const newPost = await apiClient.post<Post>("/posts", {
+      await apiClient.post<Post>("/posts", {
         content,
         type: type.toLowerCase(),
         imageUrl,
       })
 
-      set((state) => ({
-        posts: [newPost, ...state.posts],
-      }))
+      // Reload feed to get complete user data from backend
+      await get().loadFeed(true)
     } catch (error) {
       console.error("Error creating post:", error)
       throw error

@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { UploadCliperModal } from "@/components/clipers/upload-cliper-modal"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useCliperStore } from "@/store/cliper-store"
 import { useAuthStore } from "@/store/auth-store"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Share2, Play, RefreshCw, MoreHorizontal } from "lucide-react"
 import type { Cliper, Comment } from "@/lib/types"
@@ -17,7 +19,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { apiClient } from "@/lib/api"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { CliperPlayer } from "@/components/clipers/cliper-player"
 
 export default function ClipersPage() {
@@ -28,6 +30,8 @@ export default function ClipersPage() {
   const [commentsList, setCommentsList] = useState<Comment[]>([])
   const [activeCliper, setActiveCliper] = useState<Cliper | null>(null)
   const [newComment, setNewComment] = useState("")
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [cliperToDelete, setCliperToDelete] = useState<string | null>(null)
   const { toast } = useToast()
   const router = useRouter()
   const { user } = useAuthStore()
@@ -35,7 +39,8 @@ export default function ClipersPage() {
 
   useEffect(() => {
     loadClipers(true)
-  }, [loadClipers])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
 
   const handleShare = async (cliper: Cliper) => {
@@ -57,12 +62,15 @@ export default function ClipersPage() {
     loadClipers()
   }
 
-  const handleDelete = async (cliperId: string) => {
+  const handleDelete = async () => {
+    if (!cliperToDelete) return
+    
     try {
-      await deleteCliper(cliperId)
-      toast({ title: "Eliminado", description: "Reel eliminado correctamente." })
+      await deleteCliper(cliperToDelete)
+      toast({ title: "Eliminado", description: "Cliper eliminado correctamente." })
+      setCliperToDelete(null)
     } catch {
-      toast({ title: "Error", description: "No se pudo eliminar el reel.", variant: "destructive" })
+      toast({ title: "Error", description: "No se pudo eliminar el cliper.", variant: "destructive" })
     }
   }
 
@@ -136,7 +144,7 @@ export default function ClipersPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -190,56 +198,46 @@ export default function ClipersPage() {
             <>
               {/* Feed vertical centrado estilo Facebook */}
               <div className="max-w-2xl mx-auto space-y-8">
-                {clipers.map((cliper) => (
-                  <div key={cliper.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                {Array.from(new Map(clipers.map(c => [c.id, c])).values()).map((cliper) => (
+                  <div key={cliper.id} className="glass-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 card-hover-lift">
                     {/* Header del post */}
-                    <div className="p-4 pb-3">
+                    <div className="p-5 pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={cliper.user?.profileImage || "/placeholder.svg"} />
-                            <AvatarFallback>{cliper.user?.firstName?.[0] ?? "U"}</AvatarFallback>
-                          </Avatar>
+                          <RemoteAvatar
+                            src={cliper.user?.profileImage}
+                            alt={cliper.user?.firstName || "Usuario"}
+                            fallback={`${cliper.user?.firstName?.[0] || "U"}${cliper.user?.lastName?.[0] || ""}`}
+                            className="h-11 w-11 ring-2 ring-primary/20"
+                          />
                           <div>
-                            <p className="font-semibold text-sm cursor-pointer hover:underline" onClick={() => handleViewProfile(cliper)}>
+                            <p className="font-bold text-sm cursor-pointer hover:underline text-foreground" onClick={() => handleViewProfile(cliper)}>
                               {cliper.user ? `${cliper.user.firstName} ${cliper.user.lastName}` : "Usuario"}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground font-medium">
                               {formatDistanceToNow(new Date(cliper.createdAt), { addSuffix: true, locale: es })}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className={`text-xs ${cliper.status === "DONE" ? "bg-green-100 text-green-800" :
+                          <Badge variant="secondary" className={`text-xs font-semibold ${cliper.status === "DONE" ? "bg-green-100 text-green-800" :
                             cliper.status === "PROCESSING" ? "bg-yellow-100 text-yellow-800" :
                               cliper.status === "FAILED" ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-800"
                             }`}>
-                            {cliper.status === "DONE" ? "Listo" : cliper.status === "PROCESSING" ? "Procesando" : cliper.status === "FAILED" ? "Error" : cliper.status}
+                            {cliper.status === "DONE" ? "✓ Listo" : cliper.status === "PROCESSING" ? "⏳ Procesando" : cliper.status === "FAILED" ? "✗ Error" : cliper.status}
                           </Badge>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={async () => {
-                                  const ok = window.confirm("¿Seguro que deseas eliminar este cliper?")
-                                  if (!ok) return
-                                  try {
-                                    await deleteCliper(cliper.id)
-                                    toast({ title: "Eliminado", description: "Cliper eliminado correctamente." })
-                                  } catch {
-                                    toast({ title: "Error", description: "No se pudo eliminar el cliper.", variant: "destructive" })
-                                  }
-                                }}
-                                className="text-red-600"
-                              >
-                                Eliminar cliper
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {/* Botón de eliminar simple y visible */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setCliperToDelete(cliper.id)
+                              setShowDeleteDialog(true)
+                            }}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 font-semibold transition-all"
+                          >
+                            🗑️ Eliminar
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -258,11 +256,11 @@ export default function ClipersPage() {
 
                     {/* Video Player - Más grande */}
                     <div className="relative">
-                      <div className="aspect-[16/10] bg-black rounded-lg overflow-hidden">
+                      <div className="aspect-[16/10] bg-black rounded-xl overflow-hidden">
                         <CliperPlayer cliper={cliper} />
                       </div>
                       {cliper.duration > 0 && (
-                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
                           {Math.floor(cliper.duration / 60)}:{(cliper.duration % 60).toString().padStart(2, "0")}
                         </div>
                       )}
@@ -276,26 +274,32 @@ export default function ClipersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleLike(cliper)}
-                            className={`flex items-center gap-2 hover:bg-red-50 ${engagement[cliper.id]?.isLiked ? 'text-red-500' : 'text-gray-600'}`}
+                            className={`flex items-center gap-2 font-semibold transition-all ${
+                              engagement[cliper.id]?.isLiked 
+                                ? 'text-red-500 hover:text-red-600 hover:bg-red-50' 
+                                : 'text-foreground/70 hover:text-red-500 hover:bg-red-50'
+                            }`}
                           >
-                            ❤️ {engagement[cliper.id]?.likes || 0}
+                            <span className="text-xl">❤️</span>
+                            <span>{engagement[cliper.id]?.likes || 0}</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => openComments(cliper)}
-                            className="flex items-center gap-2 hover:bg-blue-50 text-gray-600"
+                            className="flex items-center gap-2 font-semibold text-foreground/70 hover:text-blue-500 hover:bg-blue-50 transition-all"
                           >
-                            💬 {engagement[cliper.id]?.comments || 0}
+                            <span className="text-xl">💬</span>
+                            <span>{engagement[cliper.id]?.comments || 0}</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleShare(cliper)}
-                            className="flex items-center gap-2 hover:bg-green-50 text-gray-600"
+                            className="flex items-center gap-2 font-semibold text-foreground/70 hover:text-green-500 hover:bg-green-50 transition-all"
                           >
-                            <Share2 className="h-4 w-4" />
-                            Compartir
+                            <Share2 className="h-5 w-5" />
+                            <span>Compartir</span>
                           </Button>
                         </div>
                       </div>
@@ -320,6 +324,9 @@ export default function ClipersPage() {
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Comentarios</DialogTitle>
+                <DialogDescription>
+                  Comparte tu opinión sobre este cliper
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 max-h-[50vh] overflow-y-auto">
                 {commentsList.length === 0 ? (
@@ -378,6 +385,20 @@ export default function ClipersPage() {
         {user?.role === "CANDIDATE" && (
           <UploadCliperModal open={showUploadModal} onOpenChange={setShowUploadModal} />
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={showDeleteDialog}
+          onClose={() => {
+            setShowDeleteDialog(false)
+            setCliperToDelete(null)
+          }}
+          onConfirm={handleDelete}
+          title="¿Eliminar cliper?"
+          description="Esta acción no se puede deshacer. El cliper será eliminado permanentemente de tu perfil."
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+        />
       </div>
     </ProtectedRoute>
   )

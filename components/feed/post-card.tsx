@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import { Badge } from "@/components/ui/badge"
 import { CommentSection } from "./comment-section"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useFeedStore } from "@/store/feed-store"
 import type { Post } from "@/lib/types"
 import { Heart, MessageCircle, MoreHorizontal, Play, Trash2, Edit2 } from "lucide-react"
@@ -35,6 +36,7 @@ export function PostCard({ post }: PostCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
   const [showMenu, setShowMenu] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { likePost, loadComments, deletePost, updatePost } = useFeedStore()
 
   const handleLike = async () => {
@@ -69,8 +71,6 @@ export function PostCard({ post }: PostCardProps) {
   }
 
   const handleDeletePost = async () => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta publicación?")) return
-
     try {
       await deletePost(post.id)
     } catch (error) {
@@ -131,7 +131,7 @@ export function PostCard({ post }: PostCardProps) {
   }
 
   return (
-    <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
+    <Card className="bg-white/[0.07] backdrop-blur-md border border-white/10 rounded-2xl shadow-lg hover:shadow-xl hover:bg-white/[0.09] transition-all duration-300">
       <CardContent className="p-6">
         {/* Post Header */}
         <div className="flex items-center justify-between mb-4">
@@ -145,17 +145,17 @@ export function PostCard({ post }: PostCardProps) {
               />
               <div className="space-y-1 text-left">
                 <div className="flex items-center space-x-2">
-                  <p className="font-semibold text-sm hover:underline">
+                  <p className="font-bold text-sm hover:underline text-[#ECECEC]">
                     {post.user?.firstName} {post.user?.lastName}
                   </p>
-                  <Badge variant="secondary" className={`text-xs ${getTypeColor(post.type)}`}>
+                  <Badge variant="secondary" className={`text-xs font-semibold ${getTypeColor(post.type)}`}>
                     {getTypeIcon(post.type)}
                     <span className="ml-1">
                       {post.type === "CLIPER" ? "Cliper" : post.type === "VIDEO" ? "Video" : "Post"}
                     </span>
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-[#BDBDBD] font-medium">
                   {(() => {
                     try {
                       const date = new Date(post.createdAt)
@@ -179,6 +179,7 @@ export function PostCard({ post }: PostCardProps) {
               <Button 
                 variant="ghost" 
                 size="sm"
+                className="text-[#BDBDBD] hover:text-[#ECECEC] hover:bg-muted/30 transition-all"
                 onClick={(e) => {
                   e.stopPropagation()
                   setShowMenu(!showMenu)
@@ -187,23 +188,23 @@ export function PostCard({ post }: PostCardProps) {
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
               {showMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-popover border rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white/[0.07] backdrop-blur-md border border-white/10 rounded-xl shadow-xl z-50">
                   <button
                     onClick={() => {
                       handleEditPost()
                       setShowMenu(false)
                     }}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center"
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted/30 flex items-center text-[#ECECEC] transition-all rounded-t-lg"
                   >
                     <Edit2 className="h-4 w-4 mr-2" />
                     Editar publicación
                   </button>
                   <button
                     onClick={() => {
-                      handleDeletePost()
+                      setShowDeleteDialog(true)
                       setShowMenu(false)
                     }}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-muted flex items-center text-destructive"
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-red-500/10 flex items-center text-red-500 transition-all rounded-b-lg"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Eliminar publicación
@@ -234,12 +235,12 @@ export function PostCard({ post }: PostCardProps) {
               </div>
             </div>
           ) : (
-            <p className="text-foreground leading-relaxed">{post.content}</p>
+            <p className="text-[#ECECEC] leading-relaxed font-normal">{post.content}</p>
           )}
 
           {/* Media Content */}
           {post.imageUrl && (
-            <div className="rounded-lg overflow-hidden bg-muted/30 flex items-center justify-center min-h-[200px]">
+            <div className="rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm flex items-center justify-center min-h-[200px] border border-white/5">
               <img
                 src={post.imageUrl || "/placeholder.svg"}
                 alt="Post image"
@@ -249,7 +250,7 @@ export function PostCard({ post }: PostCardProps) {
           )}
 
           {post.videoUrl && (
-            <div className="rounded-lg overflow-hidden bg-black">
+            <div className="rounded-xl overflow-hidden bg-black border border-white/10">
               <video controls className="w-full h-auto max-h-96">
                 <source src={post.videoUrl} type="video/mp4" />
                 Tu navegador no soporta el elemento de video.
@@ -259,25 +260,29 @@ export function PostCard({ post }: PostCardProps) {
         </div>
 
         {/* Post Actions */}
-        <div className="flex items-center justify-between pt-4 border-t mt-4">
+        <div className="flex items-center justify-between pt-4 border-t border-border/30 mt-4">
           <div className="flex items-center space-x-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`space-x-2 ${isLiked ? "text-red-500" : "text-muted-foreground"}`}
+              className={`space-x-2 transition-all duration-200 ${
+                isLiked 
+                  ? "text-red-500 hover:text-red-600" 
+                  : "text-[#BDBDBD] hover:text-[#ECECEC] hover:bg-muted/30"
+              }`}
               onClick={handleLike}
             >
               <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-              <span className="font-medium">{likeCount}</span>
+              <span className="font-semibold">{likeCount}</span>
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="space-x-2 text-muted-foreground"
+              className="space-x-2 text-[#BDBDBD] hover:text-[#ECECEC] hover:bg-muted/30 transition-all duration-200"
               onClick={handleToggleComments}
             >
               <MessageCircle className="h-5 w-5" />
-              <span className="font-medium">{comments.length}</span>
+              <span className="font-semibold">{comments.length}</span>
             </Button>
           </div>
         </div>
@@ -294,6 +299,17 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDeletePost}
+        title="¿Eliminar publicación?"
+        description="Esta acción no se puede deshacer. La publicación será eliminada permanentemente."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+      />
     </Card>
   )
 }

@@ -8,7 +8,7 @@ import { ClientLayout } from "../components/layout/client-layout"
 export const metadata: Metadata = {
   title: "Clipers - Red Social de Empleos Académica",
   description: "Conecta con oportunidades laborales a través de videos cortos profesionales",
-  generator: "Clipers App",
+  generator: "Clipers App", 
   keywords: ["empleos", "videos", "curriculum", "trabajo", "profesional", "académico"],
   authors: [{ name: "Clipers Team" }],
   openGraph: {

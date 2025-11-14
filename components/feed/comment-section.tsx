@@ -107,24 +107,34 @@ export function CommentSection({ postId, comments, postOwnerId, onCommentAdded }
                     <Input
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="flex-1"
+                      className="flex-1 border-white/10 bg-white/[0.05] text-[#ECECEC] focus-visible:ring-white/20 hover:bg-white/[0.07] transition-all"
                       maxLength={200}
                       autoFocus
                     />
-                    <Button size="sm" variant="ghost" onClick={() => handleSaveEdit(comment.id)}>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handleSaveEdit(comment.id)}
+                      className="text-green-500 hover:text-green-600 hover:bg-green-500/10 transition-all"
+                    >
                       <Check className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={handleCancelEdit}
+                      className="text-[#BDBDBD] hover:text-[#ECECEC] hover:bg-white/5 transition-all"
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ) : (
                   <>
-                    <div className="bg-muted rounded-lg px-3 py-2">
-                      <p className="font-semibold text-sm">
+                    <div className="bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 hover:bg-white/[0.07] transition-all">
+                      <p className="font-semibold text-sm text-[#ECECEC]">
                         {comment.user?.firstName} {comment.user?.lastName}
                       </p>
-                      <p className="text-sm text-foreground">{comment.content}</p>
+                      <p className="text-sm text-[#BDBDBD]">{comment.content}</p>
                     </div>
                     <div className="flex items-center space-x-3 px-3">
                       <p className="text-xs text-muted-foreground">
@@ -136,7 +146,7 @@ export function CommentSection({ postId, comments, postOwnerId, onCommentAdded }
                       {user?.id === comment.userId && (
                         <button
                           onClick={() => handleEdit(comment)}
-                          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          className="text-xs text-[#BDBDBD] hover:text-[#ECECEC] hover:underline transition-all"
                         >
                           Editar
                         </button>
@@ -144,7 +154,7 @@ export function CommentSection({ postId, comments, postOwnerId, onCommentAdded }
                       {(user?.id === comment.userId || user?.id === postOwnerId) && (
                         <button
                           onClick={() => handleDelete(comment.id)}
-                          className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                          className="text-xs text-[#BDBDBD] hover:text-red-500 hover:underline transition-all"
                         >
                           Eliminar
                         </button>
@@ -172,10 +182,15 @@ export function CommentSection({ postId, comments, postOwnerId, onCommentAdded }
             placeholder="Escribe un comentario..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            className="flex-1"
+            className="flex-1 border-white/10 bg-white/[0.05] text-[#ECECEC] placeholder:text-[#BDBDBD] focus-visible:ring-white/20 hover:bg-white/[0.07] transition-all"
             maxLength={200}
           />
-          <Button type="submit" size="sm" disabled={!newComment.trim() || isSubmitting}>
+          <Button 
+            type="submit" 
+            size="sm" 
+            disabled={!newComment.trim() || isSubmitting}
+            className="bg-gradient-to-r from-[#4E4E4E] to-[#2A2A2A] hover:from-[#5E5E5E] hover:to-[#3A3A3A] text-white transition-all duration-200"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>

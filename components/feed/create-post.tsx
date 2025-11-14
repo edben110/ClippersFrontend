@@ -81,7 +81,7 @@ export function CreatePost() {
   }
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="bg-white/[0.07] backdrop-blur-md border border-white/10 rounded-2xl shadow-lg hover:shadow-xl hover:bg-white/[0.09] transition-all duration-300">
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-start space-x-3">
@@ -96,7 +96,7 @@ export function CreatePost() {
                 placeholder="¿Qué está pasando en tu carrera profesional?"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="min-h-[100px] resize-none border-0 bg-muted/50 focus-visible:ring-1"
+                className="min-h-[100px] resize-none border border-white/10 bg-white/[0.05] text-[#ECECEC] placeholder:text-[#BDBDBD] focus-visible:ring-1 focus-visible:ring-white/20 hover:bg-white/[0.07] transition-all"
                 maxLength={500}
               />
 
@@ -133,14 +133,20 @@ export function CreatePost() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="text-muted-foreground"
+                    className="text-[#BDBDBD] hover:text-[#ECECEC] hover:bg-white/5 transition-all"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingImage}
                   >
                     <ImageIcon className="h-4 w-4 mr-2" />
                     {isUploadingImage ? "Subiendo..." : "Imagen"}
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" disabled>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-[#BDBDBD] hover:text-[#ECECEC] hover:bg-white/5 transition-all opacity-50 cursor-not-allowed" 
+                    disabled
+                  >
                     <VideoIcon className="h-4 w-4 mr-2" />
                     Video
                   </Button>
@@ -151,6 +157,7 @@ export function CreatePost() {
                     type="submit"
                     disabled={(!content.trim() && !selectedImage) || isSubmitting || isUploadingImage}
                     size="sm"
+                    className="bg-gradient-to-r from-[#4E4E4E] to-[#2A2A2A] hover:from-[#5E5E5E] hover:to-[#3A3A3A] text-white font-semibold shadow-lg transition-all duration-200"
                   >
                     <Send className="h-4 w-4 mr-2" />
                     {isSubmitting ? "Publicando..." : "Publicar"}

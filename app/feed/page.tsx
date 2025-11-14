@@ -45,7 +45,7 @@ export default function FeedPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8 max-w-[1600px]">
           <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr_260px] gap-8">
             {/* Left Sidebar */}
@@ -94,7 +94,13 @@ export default function FeedPage() {
                   </div>
 
                   <div className="pt-2">
-                    <Button variant="outline" size="sm" className="w-full h-8 text-sm" onClick={handleRefresh} disabled={isLoading}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full h-8 text-sm border-white/10 text-[#ECECEC] hover:bg-white/5 hover:text-[#ECECEC] transition-all" 
+                      onClick={handleRefresh} 
+                      disabled={isLoading}
+                    >
                       <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
                       Refrescar
                     </Button>
@@ -104,11 +110,11 @@ export default function FeedPage() {
             </aside>
 
             {/* Main Content */}
-            <main className="w-full max-w-3xl mx-auto lg:mx-0">
+            <main className="w-full max-w-2xl mx-auto">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <Image src="/LogoClipers.png" alt="Clipers" width={40} height={40} className="h-10 w-10 rounded-lg" />
+                  <Image src="/LogoClipers.png" alt="Clipers" width={56} height={48} className="h-12 w-14 rounded-lg object-contain" />
                   <div>
                     <h1 className="text-3xl font-bold text-foreground">Feed</h1>
                     <p className="text-muted-foreground">Descubre oportunidades y conecta con profesionales</p>
@@ -163,7 +169,12 @@ export default function FeedPage() {
                 {/* Load More Button */}
                 {hasMore && displayPosts.length > 0 && (
                   <div className="text-center py-6">
-                    <Button variant="outline" onClick={handleLoadMore} disabled={isLoading}>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleLoadMore} 
+                      disabled={isLoading}
+                      className="border-white/10 text-[#ECECEC] hover:bg-white/5 hover:text-[#ECECEC] transition-all"
+                    >
                       {isLoading ? "Cargando..." : "Cargar más"}
                     </Button>
                   </div>
