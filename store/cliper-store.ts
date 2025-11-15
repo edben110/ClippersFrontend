@@ -34,6 +34,7 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 120000, // 2 minutos para videos grandes
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
@@ -42,15 +43,13 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         },
       })
 
-      set((state) => {
-        const exists = state.clipers.some((c) => c.id === response.id)
-        return {
-          clipers: exists ? state.clipers : [response, ...state.clipers],
-          uploadProgress: 0,
-        }
-      })
+      // Agregar el cliper solo una vez al inicio del array
+      set((state) => ({
+        clipers: [response, ...state.clipers],
+        uploadProgress: 0,
+      }))
 
-      // Poll status until processed, so the newly uploaded item updates automatically
+      // Poll status para actualizar el cliper existente (no agregar uno nuevo)
       get().pollCliperUntilDone(response.id).catch(() => {})
 
       return response.id

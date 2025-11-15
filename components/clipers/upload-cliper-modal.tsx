@@ -158,14 +158,14 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
   if (uploadComplete) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="upload-success-description">
           <div className="text-center space-y-4 py-8">
             <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
               <FiCheck className="h-8 w-8 text-success" />
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">¡Cliper subido exitosamente!</h3>
-              <p className="text-muted-foreground text-sm">
+              <p id="upload-success-description" className="text-muted-foreground text-sm">
                 Tu cliper está siendo procesado. Recibirás una notificación cuando esté listo.
               </p>
             </div>
@@ -177,10 +177,13 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="upload-cliper-description">
         <DialogHeader>
           <DialogTitle>Crear nuevo Cliper</DialogTitle>
         </DialogHeader>
+        <p id="upload-cliper-description" className="sr-only">
+          Formulario para subir o grabar un nuevo video cliper
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

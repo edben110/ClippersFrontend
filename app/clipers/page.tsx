@@ -17,30 +17,35 @@ import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { apiClient } from "@/lib/api"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Trash2 } from "lucide-react"
 import { CliperPlayer } from "@/components/clipers/cliper-player"
 
 export default function ClipersPage() {
   const { clipers, isLoading, hasMore, loadClipers, deleteCliper } = useCliperStore()
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [engagement, setEngagement] = useState<Record<string, { postId?: string; likes: number; isLiked: boolean; comments: number }>>({})
-  const [commentsOpen, setCommentsOpen] = useState(false)
-  const [commentsList, setCommentsList] = useState<Comment[]>([])
-  const [activeCliper, setActiveCliper] = useState<Cliper | null>(null)
-  const [newComment, setNewComment] = useState("")
+  const [commentsByCliper, setCommentsByCliper] = useState<Record<string, Comment[]>>({})
+  const [newCommentByCliper, setNewCommentByCliper] = useState<Record<string, string>>({})
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [cliperToDelete, setCliperToDelete] = useState<string | null>(null)
   const { toast } = useToast()
   const router = useRouter()
   const { user } = useAuthStore()
-  // Vista simplificada estilo YouTube: sin observer ni autoplay (limpieza de estados heredados)
 
   useEffect(() => {
     loadClipers(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Cerrar menú al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null)
+    if (openMenuId) {
+      document.addEventListener("click", handleClickOutside)
+      return () => document.removeEventListener("click", handleClickOutside)
+    }
+  }, [openMenuId])
 
 
   const handleShare = async (cliper: Cliper) => {
@@ -83,13 +88,6 @@ export default function ClipersPage() {
     }
   }
 
-  const ensurePost = async (cliper: Cliper): Promise<string> => {
-    // NO crear posts automáticamente desde clipers
-    // Los clipers ya tienen su propio sistema de engagement
-    // Este método no debería usarse
-    throw new Error("No se debe crear posts automáticamente desde clipers")
-  }
-
   const handleLike = async (cliper: Cliper) => {
     // Implementar likes directamente en clipers sin crear posts
     try {
@@ -111,30 +109,52 @@ export default function ClipersPage() {
     }
   }
 
-  const openComments = async (cliper: Cliper) => {
-    // Abrir modal de comentarios sin cargar desde posts
+  const submitComment = async (cliperId: string) => {
+    const comment = newCommentByCliper[cliperId]
+    if (!comment?.trim()) return
+    
     try {
-      // TODO: Implementar endpoint de comentarios para clipers
-      setCommentsList([])
-      setActiveCliper(cliper)
-      setCommentsOpen(true)
+      // Crear comentario local (simulado hasta que backend esté listo)
+      const newComment: Comment = {
+        id: `temp-${Date.now()}`,
+        content: comment.trim(),
+        userId: user?.id || "",
+        postId: cliperId, // Usar cliperId como postId temporal
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        user: {
+          id: user?.id || "",
+          firstName: user?.firstName || "Usuario",
+          lastName: user?.lastName || "",
+          email: user?.email || "",
+          profileImage: user?.profileImage,
+          role: user?.role || "CANDIDATE",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      }
+      
+      // Agregar comentario al estado local
+      setCommentsByCliper(prev => ({
+        ...prev,
+        [cliperId]: [...(prev[cliperId] || []), newComment]
+      }))
+      
+      // Actualizar contador de comentarios
+      setEngagement(prev => ({
+        ...prev,
+        [cliperId]: {
+          ...prev[cliperId],
+          comments: (prev[cliperId]?.comments || 0) + 1
+        }
+      }))
+      
+      // Limpiar el input
+      setNewCommentByCliper(prev => ({ ...prev, [cliperId]: "" }))
+      
       toast({
-        title: "Comentarios deshabilitados temporalmente",
-        description: "Los comentarios en clipers estarán disponibles pronto.",
-        variant: "default"
-      })
-    } catch {
-      toast({ title: "Error", description: "No se pudieron cargar los comentarios.", variant: "destructive" })
-    }
-  }
-
-  const submitComment = async () => {
-    if (!activeCliper || !newComment.trim()) return
-    try {
-      // TODO: Implementar endpoint de comentarios para clipers
-      toast({
-        title: "Comentarios deshabilitados temporalmente",
-        description: "Los comentarios en clipers estarán disponibles pronto.",
+        title: "Comentario agregado",
+        description: "Tu comentario se ha agregado correctamente.",
         variant: "default"
       })
     } catch {
@@ -145,25 +165,27 @@ export default function ClipersPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Clipers</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clipers</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {user?.role === "COMPANY"
                   ? "Descubre el talento a través de videos profesionales"
                   : "Presenta tu perfil profesional con videos cortos"}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button variant="outline" size="sm" onClick={() => window.location.reload()} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline ml-2">Refrescar</span>
               </Button>
               {user?.role === "CANDIDATE" && (
-                <Button onClick={() => setShowUploadModal(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Subir Cliper
+                <Button onClick={() => setShowUploadModal(true)} size="sm" className="sm:size-default">
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Subir Cliper</span>
+                  <span className="sm:hidden ml-1">Subir</span>
                 </Button>
               )}
             </div>
@@ -197,113 +219,193 @@ export default function ClipersPage() {
           ) : (
             <>
               {/* Feed vertical centrado estilo Facebook */}
-              <div className="max-w-2xl mx-auto space-y-8">
+              <div className="max-w-2xl mx-auto space-y-4 sm:space-y-8">
                 {Array.from(new Map(clipers.map(c => [c.id, c])).values()).map((cliper) => (
-                  <div key={cliper.id} className="glass-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 card-hover-lift">
+                  <div key={cliper.id} className="glass-card rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 card-hover-lift">
                     {/* Header del post */}
-                    <div className="p-5 pb-3">
+                    <div className="p-3 sm:p-5 pb-2 sm:pb-3">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                           <RemoteAvatar
                             src={cliper.user?.profileImage}
                             alt={cliper.user?.firstName || "Usuario"}
                             fallback={`${cliper.user?.firstName?.[0] || "U"}${cliper.user?.lastName?.[0] || ""}`}
-                            className="h-11 w-11 ring-2 ring-primary/20"
+                            className="h-9 w-9 sm:h-11 sm:w-11 ring-2 ring-primary/20 flex-shrink-0"
                           />
-                          <div>
-                            <p className="font-bold text-sm cursor-pointer hover:underline text-foreground" onClick={() => handleViewProfile(cliper)}>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-xs sm:text-sm cursor-pointer hover:underline text-foreground truncate" onClick={() => handleViewProfile(cliper)}>
                               {cliper.user ? `${cliper.user.firstName} ${cliper.user.lastName}` : "Usuario"}
                             </p>
-                            <p className="text-xs text-muted-foreground font-medium">
+                            <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">
                               {formatDistanceToNow(new Date(cliper.createdAt), { addSuffix: true, locale: es })}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className={`text-xs font-semibold ${cliper.status === "DONE" ? "bg-green-100 text-green-800" :
-                            cliper.status === "PROCESSING" ? "bg-yellow-100 text-yellow-800" :
-                              cliper.status === "FAILED" ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-800"
-                            }`}>
-                            {cliper.status === "DONE" ? "✓ Listo" : cliper.status === "PROCESSING" ? "⏳ Procesando" : cliper.status === "FAILED" ? "✗ Error" : cliper.status}
-                          </Badge>
-                          {/* Botón de eliminar simple y visible */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setCliperToDelete(cliper.id)
-                              setShowDeleteDialog(true)
-                            }}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 font-semibold transition-all"
-                          >
-                            🗑️ Eliminar
-                          </Button>
-                        </div>
+                        <Badge variant="secondary" className={`text-[10px] sm:text-xs font-semibold flex-shrink-0 ${cliper.status === "DONE" ? "bg-green-500/20 text-green-400" :
+                          cliper.status === "PROCESSING" ? "bg-yellow-500/20 text-yellow-400" :
+                            cliper.status === "FAILED" ? "bg-red-500/20 text-red-400" : "bg-muted text-muted-foreground"
+                          }`}>
+                          {cliper.status === "DONE" ? "✓ Listo" : cliper.status === "PROCESSING" ? "⏳" : cliper.status === "FAILED" ? "✗ Error" : cliper.status}
+                        </Badge>
                       </div>
                     </div>
 
                     {/* Título y descripción */}
                     {(cliper.title || cliper.description) && (
-                      <div className="px-4 pb-3">
+                      <div className="px-3 sm:px-4 pb-2 sm:pb-3">
                         {cliper.title && (
-                          <h3 className="font-semibold text-base mb-1">{cliper.title}</h3>
+                          <h3 className="font-semibold text-sm sm:text-base mb-1">{cliper.title}</h3>
                         )}
                         {cliper.description && (
-                          <p className="text-sm text-muted-foreground">{cliper.description}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{cliper.description}</p>
                         )}
                       </div>
                     )}
 
-                    {/* Video Player - Más grande */}
-                    <div className="relative">
-                      <div className="aspect-[16/10] bg-black rounded-xl overflow-hidden">
+                    {/* Video Player */}
+                    <div className="relative px-2 sm:px-4 pb-2 sm:pb-4">
+                      <div className="aspect-[16/10] bg-black rounded-lg sm:rounded-xl overflow-hidden border-2 sm:border-4 border-border">
                         <CliperPlayer cliper={cliper} />
                       </div>
                       {cliper.duration > 0 && (
-                        <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
+                        <div className="absolute bottom-4 sm:bottom-7 right-4 sm:right-7 bg-black/80 backdrop-blur-sm text-white text-[10px] sm:text-xs font-semibold px-2 py-1 sm:px-3 sm:py-1.5 rounded-md sm:rounded-lg">
                           {Math.floor(cliper.duration / 60)}:{(cliper.duration % 60).toString().padStart(2, "0")}
                         </div>
                       )}
                     </div>
 
-                    {/* Acciones del post */}
-                    <div className="p-4 pt-3">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-6">
+                    {/* Acciones del cliper */}
+                    <div className="px-3 sm:px-4 pb-3 sm:pb-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 sm:gap-6">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleLike(cliper)}
-                            className={`flex items-center gap-2 font-semibold transition-all ${
+                            className={`flex items-center gap-1 sm:gap-2 font-semibold transition-all h-8 px-2 sm:px-3 ${
                               engagement[cliper.id]?.isLiked 
-                                ? 'text-red-500 hover:text-red-600 hover:bg-red-50' 
-                                : 'text-foreground/70 hover:text-red-500 hover:bg-red-50'
+                                ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
+                                : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
                             }`}
                           >
-                            <span className="text-xl">❤️</span>
-                            <span>{engagement[cliper.id]?.likes || 0}</span>
+                            <span className="text-base sm:text-xl">❤️</span>
+                            <span className="text-xs sm:text-sm">{engagement[cliper.id]?.likes || 0}</span>
                           </Button>
+                          <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
+                            <span className="text-base sm:text-xl">💬</span>
+                            <span className="font-semibold text-xs sm:text-sm">{commentsByCliper[cliper.id]?.length || 0}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Menú de 3 puntos movido aquí */}
+                        <div className="relative">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => openComments(cliper)}
-                            className="flex items-center gap-2 font-semibold text-foreground/70 hover:text-blue-500 hover:bg-blue-50 transition-all"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setOpenMenuId(openMenuId === cliper.id ? null : cliper.id)
+                            }}
                           >
-                            <span className="text-xl">💬</span>
-                            <span>{engagement[cliper.id]?.comments || 0}</span>
+                            <MoreHorizontal className="h-5 w-5" />
                           </Button>
-                          <Button
-                            variant="ghost"
+                          {openMenuId === cliper.id && (
+                            <div className="absolute right-0 mt-2 w-48 glass-card rounded-xl shadow-xl z-50">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleShare(cliper)
+                                  setOpenMenuId(null)
+                                }}
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-muted/30 flex items-center text-foreground transition-all rounded-t-xl"
+                              >
+                                <Share2 className="h-4 w-4 mr-2" />
+                                Compartir
+                              </button>
+                              <div className="border-t border-border"></div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setCliperToDelete(cliper.id)
+                                  setShowDeleteDialog(true)
+                                  setOpenMenuId(null)
+                                }}
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-destructive/10 flex items-center text-destructive transition-all rounded-b-xl"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sección de comentarios siempre visible */}
+                    <div className="px-3 sm:px-4 pb-3 sm:pb-4 border-t border-border pt-3 sm:pt-4">
+                      <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-2 sm:mb-3">Comentarios</h4>
+                      
+                      {/* Lista de comentarios */}
+                      {commentsByCliper[cliper.id] && commentsByCliper[cliper.id].length > 0 ? (
+                        <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4 max-h-48 sm:max-h-60 overflow-y-auto">
+                          {commentsByCliper[cliper.id].map((comment) => (
+                            <div key={comment.id} className="flex items-start gap-2 sm:gap-3">
+                              <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
+                                <AvatarImage src={comment.user?.profileImage || "/placeholder.svg"} />
+                                <AvatarFallback className="text-[10px] sm:text-xs">
+                                  {comment.user?.firstName?.[0]}{comment.user?.lastName?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="bg-muted/30 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
+                                  <p className="font-semibold text-xs sm:text-sm text-foreground truncate">
+                                    {comment.user?.firstName} {comment.user?.lastName}
+                                  </p>
+                                  <p className="text-xs sm:text-sm text-muted-foreground break-words">{comment.content}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">Sé el primero en comentar.</p>
+                      )}
+
+                      {/* Input para nuevo comentario */}
+                      <div className="flex gap-1.5 sm:gap-2">
+                        <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
+                          <AvatarImage src={user?.profileImage || "/placeholder.svg"} />
+                          <AvatarFallback className="text-[10px] sm:text-xs">
+                            {user?.firstName?.[0]}{user?.lastName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 flex gap-1.5 sm:gap-2 min-w-0">
+                          <input
+                            className="flex-1 bg-muted/30 border border-border rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all min-w-0"
+                            placeholder="Comentar..."
+                            value={newCommentByCliper[cliper.id] || ""}
+                            onChange={(e) => setNewCommentByCliper(prev => ({ ...prev, [cliper.id]: e.target.value }))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                submitComment(cliper.id)
+                              }
+                            }}
+                          />
+                          <Button 
+                            onClick={() => submitComment(cliper.id)} 
+                            disabled={!newCommentByCliper[cliper.id]?.trim()}
                             size="sm"
-                            onClick={() => handleShare(cliper)}
-                            className="flex items-center gap-2 font-semibold text-foreground/70 hover:text-green-500 hover:bg-green-50 transition-all"
+                            className="bg-primary hover:bg-primary/90 h-8 px-2 sm:px-3 text-xs sm:text-sm flex-shrink-0"
                           >
-                            <Share2 className="h-5 w-5" />
-                            <span>Compartir</span>
+                            <span className="hidden sm:inline">Enviar</span>
+                            <span className="sm:hidden">→</span>
                           </Button>
                         </div>
                       </div>
                     </div>
+
                   </div>
                 ))}
               </div>
@@ -318,43 +420,6 @@ export default function ClipersPage() {
               )}
             </>
           )}
-
-          {/* Comments Dialog */}
-          <Dialog open={commentsOpen} onOpenChange={setCommentsOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Comentarios</DialogTitle>
-                <DialogDescription>
-                  Comparte tu opinión sobre este cliper
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 max-h-[50vh] overflow-y-auto">
-                {commentsList.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sé el primero en comentar.</p>
-                ) : commentsList.map((c) => (
-                  <div key={c.id} className="flex items-start gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg" />
-                      <AvatarFallback>{c.user?.firstName?.[0] ?? "U"}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-sm">
-                      <p className="font-medium">{c.user ? `${c.user.firstName} ${c.user.lastName}` : "Usuario"}</p>
-                      <p className="text-muted-foreground">{c.content}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2 pt-2">
-                <input
-                  className="flex-1 bg-muted rounded px-3 py-2 text-sm"
-                  placeholder="Escribe un comentario..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                />
-                <Button onClick={submitComment} disabled={!newComment.trim()}>Enviar</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
 
           {/* Loading Skeleton */}
           {isLoading && clipers.length === 0 && (

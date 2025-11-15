@@ -1,11 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import {
   DropdownMenu,
@@ -15,12 +13,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/store/auth-store"
-import { Home, Video, Briefcase, User, LogOut, Menu, X } from "lucide-react"
+import { Home, Video, Briefcase, User, LogOut } from "lucide-react"
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore()
   const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
 
   const handleLogout = () => {
@@ -35,64 +32,54 @@ export function Navbar() {
   ]
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-transparent backdrop-blur-md">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Image src="/LogoClipers.png" alt="Clipers" width={48} height={40} className="h-10 w-12 rounded-lg object-contain" />
-            <span className="text-xl font-bold text-foreground">Clipers</span>
-          </Link>
+    <>
+      {/* Top Navbar */}
+      <nav className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/40 backdrop-blur-2xl shadow-sm">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-1 sm:space-x-1.5">
+              <Image src="/LogoClipers.png" alt="Clipers" width={64} height={56} className="h-12 w-14 sm:h-14 sm:w-16 rounded-lg object-contain" priority />
+              <span className="text-xl sm:text-2xl font-bold text-foreground">Clipers</span>
+            </Link>
 
-          {/* Navegación centrada */}
-          {isAuthenticated && (
-            <div className="hidden md:flex items-center justify-center flex-1 space-x-8">
-              {navItems.map((item) => {
-                const isActive = pathname?.startsWith(item.href)
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`
-                      flex items-center space-x-2 px-4 py-2 rounded-lg
-                      transition-all duration-200 font-medium
-                      ${isActive 
-                        ? 'text-foreground bg-muted/50 border-b-2 border-primary' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                      }
-                    `}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
+            {/* Navegación centrada - Solo Desktop */}
+            {isAuthenticated && (
+              <div className="hidden md:flex items-center justify-center flex-1 space-x-8 md:-ml-10 lg:-ml-20">
+                {navItems.map((item) => {
+                  const isActive = pathname?.startsWith(item.href)
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`
+                        flex items-center space-x-2 px-4 py-2 rounded-lg
+                        transition-all duration-200 font-medium
+                        ${isActive 
+                          ? 'text-foreground bg-muted/50 border-b-2 border-primary' 
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                        }
+                      `}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
 
-          {/* Avatar con dropdown a la derecha */}
-          <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              <>
-                {/* Mobile Menu Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="md:hidden"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                >
-                  {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
-
-                {/* Avatar con dropdown (Desktop y Mobile) */}
+            {/* Avatar con dropdown a la derecha */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {isAuthenticated ? (
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <button className="relative h-10 w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <button className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50">
                       <RemoteAvatar
                         src={user?.profileImage}
                         alt={user?.firstName || "Usuario"}
                         fallback={`${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`}
-                        className="h-10 w-10 cursor-pointer"
+                        className="h-8 w-8 sm:h-10 sm:w-10 cursor-pointer"
                       />
                     </button>
                   </DropdownMenuTrigger>
@@ -128,48 +115,50 @@ export function Navbar() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/auth/login">Iniciar sesión</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/auth/register">Registrarse</Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isAuthenticated && isMobileMenuOpen && (
-          <div className="md:hidden border-t py-4">
-            <div className="flex flex-col space-y-2">
-              {navItems.map((item) => {
-                const isActive = pathname?.startsWith(item.href)
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`
-                      flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                      ${isActive 
-                        ? 'text-foreground bg-muted/50 font-medium' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                      }
-                    `}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" asChild>
+                    <Link href="/auth/login">Iniciar sesión</Link>
+                  </Button>
+                  <Button asChild>
+                    <Link href="/auth/register">Registrarse</Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
-    </nav>
+        </div>
+      </nav>
+
+      {/* Bottom Navigation - Solo Mobile */}
+      {isAuthenticated && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur-xl shadow-lg pb-safe">
+          <div className="flex items-center justify-around h-16 px-2">
+            {navItems.map((item) => {
+              const isActive = pathname?.startsWith(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`
+                    flex flex-col items-center justify-center space-y-1 px-4 py-2 rounded-lg
+                    transition-all duration-200 flex-1 max-w-[100px]
+                    ${isActive 
+                      ? 'text-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
+                    }
+                  `}
+                >
+                  <item.icon className={`h-6 w-6 ${isActive ? 'scale-110' : ''} transition-transform`} />
+                  <span className={`text-xs ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                    {item.label}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
+      )}
+    </>
   )
 }
