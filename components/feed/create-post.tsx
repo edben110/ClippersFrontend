@@ -157,11 +157,10 @@ export function CreatePost() {
                     type="submit"
                     disabled={(!content.trim() && !selectedImage) || isSubmitting || isUploadingImage}
                     size="sm"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg transition-all duration-200 h-8 px-2 sm:px-3 text-xs sm:text-sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg transition-all duration-200 h-8 px-3 sm:px-3 text-xs sm:text-sm"
                   >
-                    <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                    <Send className="h-4 w-4 xs:mr-2" />
                     <span className="hidden xs:inline">{isSubmitting ? "Publicando..." : "Publicar"}</span>
-                    <span className="xs:hidden">→</span>
                   </Button>
                 </div>
               </div>

@@ -13,12 +13,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/store/auth-store"
-import { Home, Video, Briefcase, User, LogOut } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
+import { Home, Video, Briefcase, User, LogOut, Sun, Moon } from "lucide-react"
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
+  
+  // Usar useTheme de forma segura
+  let theme: "dark" | "light" = "dark"
+  let setTheme: ((theme: "dark" | "light") => void) | undefined
+  
+  try {
+    const themeContext = useTheme()
+    theme = themeContext.theme
+    setTheme = themeContext.setTheme
+  } catch (e) {
+    // ThemeProvider no disponible aún
+  }
 
   const handleLogout = () => {
     logout()
@@ -69,8 +82,25 @@ export function Navbar() {
               </div>
             )}
 
-            {/* Avatar con dropdown a la derecha */}
+            {/* Theme Toggle & Avatar */}
             <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Theme Toggle Button */}
+              {setTheme && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTheme?.(theme === "dark" ? "light" : "dark")}
+                  className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                  title={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
+                  ) : (
+                    <Moon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
+                </Button>
+              )}
+
               {isAuthenticated ? (
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>

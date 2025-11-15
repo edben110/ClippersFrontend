@@ -5,6 +5,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import "./globals.css"
 import { ClientLayout } from "../components/layout/client-layout"
+import { ThemeProvider } from "@/components/theme-provider"
 export const metadata: Metadata = {
   title: "Clipers - Red Social de Empleos Académica",
   description: "Conecta con oportunidades laborales a través de videos cortos profesionales",
@@ -30,10 +31,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('clipers-theme') || 'dark';
+                document.documentElement.classList.add(theme);
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className={`font-sans`}>
-        <ClientLayout>
-          <Suspense fallback={null}>{children}</Suspense>
-        </ClientLayout>
+        <ThemeProvider defaultTheme="dark">
+          <ClientLayout>
+            <Suspense fallback={null}>{children}</Suspense>
+          </ClientLayout>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -227,14 +227,18 @@ export default function ClipersPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                           <RemoteAvatar
-                            src={cliper.user?.profileImage}
-                            alt={cliper.user?.firstName || "Usuario"}
-                            fallback={`${cliper.user?.firstName?.[0] || "U"}${cliper.user?.lastName?.[0] || ""}`}
+                            src={cliper.user?.profileImage || user?.profileImage}
+                            alt={cliper.user?.firstName || user?.firstName || "Usuario"}
+                            fallback={`${cliper.user?.firstName?.[0] || user?.firstName?.[0] || "U"}${cliper.user?.lastName?.[0] || user?.lastName?.[0] || ""}`}
                             className="h-9 w-9 sm:h-11 sm:w-11 ring-2 ring-primary/20 flex-shrink-0"
                           />
                           <div className="min-w-0 flex-1">
                             <p className="font-bold text-xs sm:text-sm cursor-pointer hover:underline text-foreground truncate" onClick={() => handleViewProfile(cliper)}>
-                              {cliper.user ? `${cliper.user.firstName} ${cliper.user.lastName}` : "Usuario"}
+                              {cliper.user 
+                                ? `${cliper.user.firstName} ${cliper.user.lastName}` 
+                                : cliper.userId === user?.id 
+                                  ? `${user.firstName} ${user.lastName}` 
+                                  : "Usuario"}
                             </p>
                             <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">
                               {formatDistanceToNow(new Date(cliper.createdAt), { addSuffix: true, locale: es })}
