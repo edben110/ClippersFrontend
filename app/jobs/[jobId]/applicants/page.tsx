@@ -10,18 +10,22 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FiArrowLeft, FiBriefcase } from "react-icons/fi"
+import { FiArrowLeft, FiBriefcase, FiAward } from "react-icons/fi"
 import type { Job } from "@/lib/types"
 import { apiClient } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 export default function JobApplicantsPage() {
   const params = useParams()
   const router = useRouter()
   const jobId = params.jobId as string
   const { user } = useAuthStore()
-  const { applicants, getJobApplications, isLoading } = useJobStore()
+  const { applicants, getJobApplications, getAIRanking, isLoading } = useJobStore()
+  const { toast } = useToast()
   const [job, setJob] = useState<Job | null>(null)
   const [loadingJob, setLoadingJob] = useState(true)
+  const [loadingAI, setLoadingAI] = useState(false)
+  const [aiRankingEnabled, setAiRankingEnabled] = useState(false)
 
   useEffect(() => {
     const loadJobAndApplicants = async () => {
@@ -44,6 +48,31 @@ export default function JobApplicantsPage() {
       loadJobAndApplicants()
     }
   }, [jobId, user, getJobApplications])
+
+  const handleAIRanking = async () => {
+    if (!jobId) return
+    
+    setLoadingAI(true)
+    try {
+      await getAIRanking(jobId)
+      setAiRankingEnabled(true)
+      toast({
+        title: "✅ Ranking IA activado",
+        description: "Los candidatos han sido evaluados y ordenados por compatibilidad",
+        variant: "default",
+      })
+    } catch (error: any) {
+      console.error("Error getting AI ranking:", error)
+      const errorMessage = error?.response?.data?.message || error?.message || "Error al conectar con el servicio de IA"
+      toast({
+        title: "❌ Error al activar ranking IA",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingAI(false)
+    }
+  }
 
   if (user?.role !== "COMPANY") {
     return (
@@ -87,10 +116,37 @@ export default function JobApplicantsPage() {
               </div>
             ) : job ? (
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-foreground">{job.title}</h1>
-                <p className="text-muted-foreground">
-                  Gestiona los candidatos que han aplicado a esta oferta
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold text-foreground">{job.title}</h1>
+                    <p className="text-muted-foreground">
+                      Gestiona los candidatos que han aplicado a esta oferta
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleAIRanking}
+                    disabled={loadingAI || applicants.length === 0}
+                    variant={aiRankingEnabled ? "default" : "outline"}
+                    className="min-w-[200px]"
+                  >
+                    {loadingAI ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Analizando con IA...
+                      </>
+                    ) : aiRankingEnabled ? (
+                      <>
+                        <FiAward className="mr-2 h-4 w-4" />
+                        Ranking IA Activo
+                      </>
+                    ) : (
+                      <>
+                        <FiBriefcase className="mr-2 h-4 w-4" />
+                        Activar Ranking IA
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">

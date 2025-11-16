@@ -15,6 +15,7 @@ interface JobState {
   getJobMatches: (jobId: string) => Promise<void>
   getApplicants: (jobId: string) => Promise<void>
   rankApplicants: (jobId: string) => Promise<void>
+  getAIRanking: (jobId: string) => Promise<void>
   applyToJob: (jobId: string, message?: string) => Promise<JobApplication>
   getMyApplications: () => Promise<void>
   updateApplicationStatus: (applicationId: string, status: string) => Promise<void>
@@ -143,6 +144,93 @@ export const useJobStore = create<JobState>((set, get) => ({
     } catch (error) {
       console.error("Error ranking applicants:", error)
       set({ matches: [] })
+    }
+  },
+
+  getAIRanking: async (jobId: string) => {
+    try {
+      console.debug(`[JOB STORE] getAIRanking jobId=${jobId}`)
+      console.log(`[JOB STORE] Calling endpoint: /ai/match/job/${jobId}/candidates?limit=100`)
+      
+      const data = await apiClient.get<{
+        jobId: string
+        jobTitle: string
+        totalCandidates: number
+        matches: Array<{
+          candidateId: string
+          candidateName: string
+          compatibilityScore: number
+          matchPercentage: number
+          rank: number
+          breakdown: {
+            skillsMatch: number
+            experienceMatch: number
+            educationMatch: number
+            semanticMatch: number
+            locationMatch?: number
+          }
+          matchedSkills: string[]
+          missingSkills: string[]
+          explanation: string
+          recommendations: string[]
+          matchQuality: string
+        }>
+        averageScore: number
+        topSkillsMatched: string[]
+      }>(`/ai/match/job/${jobId}/candidates?limit=100`)
+      
+      console.log('[JOB STORE] Full data:', data)
+      console.log('[JOB STORE] Data type:', typeof data)
+      console.log('[JOB STORE] Data keys:', data ? Object.keys(data) : 'null/undefined')
+      
+      // If data is a string, it's probably an error HTML page or error message
+      if (typeof data === 'string') {
+        console.error('[JOB STORE] Backend returned string instead of JSON:', data.substring(0, 500))
+        throw new Error(`Backend returned invalid response (string). First 200 chars: ${data.substring(0, 200)}`)
+      }
+      
+      if (!data) {
+        throw new Error('No data received from AI service - Backend may not be running')
+      }
+      
+      if (!data.matches || !Array.isArray(data.matches)) {
+        console.error('[JOB STORE] Invalid data structure:', data)
+        throw new Error(`Invalid response format: matches is missing or not an array. Received: ${JSON.stringify(data)}`)
+      }
+      
+      console.debug(`[JOB STORE] getAIRanking received ${data.matches.length} AI-ranked matches`)
+      
+      // Merge AI data with existing applicants
+      set((state) => ({
+        applicants: state.applicants.map(app => {
+          const aiMatch = data.matches.find(m => m.candidateId === app.userId)
+          if (aiMatch) {
+            return {
+              ...app,
+              score: aiMatch.compatibilityScore,
+              explanation: aiMatch.explanation,
+              matchedSkills: aiMatch.matchedSkills,
+              aiMatchData: {
+                compatibilityScore: aiMatch.compatibilityScore,
+                matchPercentage: aiMatch.matchPercentage,
+                rank: aiMatch.rank,
+                breakdown: aiMatch.breakdown,
+                missingSkills: aiMatch.missingSkills,
+                recommendations: aiMatch.recommendations,
+                matchQuality: aiMatch.matchQuality,
+              }
+            }
+          }
+          return app
+        }).sort((a, b) => (a.aiMatchData?.rank || 999) - (b.aiMatchData?.rank || 999))
+      }))
+    } catch (error) {
+      console.error("Error getting AI ranking:", error)
+      if (error instanceof Error) {
+        console.error("Error message:", error.message)
+        console.error("Error stack:", error.stack)
+      }
+      throw error
     }
   },
 

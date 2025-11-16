@@ -165,6 +165,29 @@ export interface JobApplication {
   status: "PENDING" | "ACCEPTED" | "REJECTED"
   applicationMessage?: string
   createdAt: string
+  // AI Matching data
+  aiMatchData?: AIMatchData
+}
+
+export interface AIMatchData {
+  compatibilityScore: number
+  matchPercentage: number
+  rank?: number
+  breakdown?: MatchBreakdown
+  missingSkills?: string[]
+  recommendations?: string[]
+  matchQuality?: string
+  strengths?: string[]
+  weaknesses?: string[]
+  detailedAnalysis?: Record<string, string>
+}
+
+export interface MatchBreakdown {
+  skillsMatch: number
+  experienceMatch: number
+  educationMatch: number
+  semanticMatch: number
+  locationMatch?: number
 }
 
 export interface AuthResponse {
