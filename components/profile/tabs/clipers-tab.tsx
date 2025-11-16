@@ -7,7 +7,6 @@ import { CliperCard } from "@/components/clipers/cliper-card"
 import { UploadCliperModal } from "@/components/clipers/upload-cliper-modal"
 import { useCliperStore } from "@/store/cliper-store"
 import { useJobStore } from "@/store/job-store"
-import { useAuthStore } from "@/store/auth-store"
 import type { User, Company } from "@/lib/types"
 import { FiPlus, FiVideo, FiBriefcase } from "react-icons/fi"
 
@@ -19,14 +18,14 @@ interface ClipersTabProps {
 export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const { clipers, loadClipers, loadMyClipers } = useCliperStore()
-  const { jobs, searchJobs } = useJobStore()
+  const { jobs, loadMyJobs } = useJobStore()
 
   const isCompany = profile && "name" in profile
 
   useEffect(() => {
     if (isCompany && isOwnProfile) {
-      // Load company jobs
-      searchJobs("", {}, true)
+      // Load only company's own jobs
+      loadMyJobs()
     } else if (profile && profile.id) {
       // Load clipers for this specific user profile
       // For now, if it's own profile use loadMyClipers, otherwise we need to fetch by userId
@@ -38,7 +37,7 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
         loadClipers(true)
       }
     }
-  }, [isCompany, isOwnProfile, profile, loadMyClipers, loadClipers, searchJobs])
+  }, [isCompany, isOwnProfile, profile, loadMyClipers, loadClipers, loadMyJobs])
 
   if (isCompany) {
     // Show company jobs

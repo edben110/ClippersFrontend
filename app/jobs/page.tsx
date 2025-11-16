@@ -17,7 +17,7 @@ import { FiPlus, FiSearch, FiBriefcase, FiRefreshCw } from "react-icons/fi"
 import type { Job } from "@/lib/types"
 
 export default function JobsPage() {
-  const { jobs, isLoading, hasMore, searchJobs, filters } = useJobStore()
+  const { jobs, isLoading, hasMore, searchJobs, loadMyJobs, filters } = useJobStore()
   const { user } = useAuthStore()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -27,9 +27,16 @@ export default function JobsPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [showJobModal, setShowJobModal] = useState(false)
 
+  const isCompany = user?.role === "COMPANY"
+
   useEffect(() => {
-    searchJobs("", {}, true)
-  }, [searchJobs])
+    // Companies see only their own jobs, candidates see all public jobs
+    if (isCompany) {
+      loadMyJobs()
+    } else {
+      searchJobs("", {}, true)
+    }
+  }, [isCompany, searchJobs, loadMyJobs])
 
   useEffect(() => {
     // Check if there's a job to open from URL params
@@ -62,6 +69,12 @@ export default function JobsPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    // Companies can't search, they only see their own jobs
+    if (isCompany) {
+      loadMyJobs()
+      return
+    }
+    
     if (searchQuery.trim()) {
       searchJobs(searchQuery.trim(), filters, true)
     } else {
@@ -70,14 +83,18 @@ export default function JobsPage() {
   }
 
   const handleLoadMore = () => {
+    // Companies don't have pagination, they see all their jobs
+    if (isCompany) return
     searchJobs(searchQuery, filters)
   }
 
   const handleRefresh = () => {
-    searchJobs(searchQuery, filters, true)
+    if (isCompany) {
+      loadMyJobs()
+    } else {
+      searchJobs(searchQuery, filters, true)
+    }
   }
-
-  const isCompany = user?.role === "COMPANY"
 
   return (
     <ProtectedRoute>
@@ -109,37 +126,39 @@ export default function JobsPage() {
             </div>
           </div>
 
-          {/* Search and Filters */}
-          <div className="space-y-4 mb-8">
-            <form onSubmit={handleSearch} className="flex gap-3">
-              <div className="relative flex-1">
-                <FiSearch className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar empleos por título, empresa o habilidades..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value)
-                    // Búsqueda en tiempo real con debounce
-                    if (e.target.value.trim().length >= 3 || e.target.value.trim().length === 0) {
-                      const timeoutId = setTimeout(() => {
-                        searchJobs(e.target.value.trim(), filters, true)
-                      }, 500)
-                      return () => clearTimeout(timeoutId)
-                    }
-                  }}
-                  className="pl-10"
-                />
-              </div>
-              <Button type="submit" disabled={isLoading}>
-                Buscar
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setShowFilters(!showFilters)}>
-                Filtros
-              </Button>
-            </form>
+          {/* Search and Filters - Only for candidates */}
+          {!isCompany && (
+            <div className="space-y-4 mb-8">
+              <form onSubmit={handleSearch} className="flex gap-3">
+                <div className="relative flex-1">
+                  <FiSearch className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar empleos por título, empresa o habilidades..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      // Búsqueda en tiempo real con debounce
+                      if (e.target.value.trim().length >= 3 || e.target.value.trim().length === 0) {
+                        const timeoutId = setTimeout(() => {
+                          searchJobs(e.target.value.trim(), filters, true)
+                        }, 500)
+                        return () => clearTimeout(timeoutId)
+                      }
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="submit" disabled={isLoading}>
+                  Buscar
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowFilters(!showFilters)}>
+                  Filtros
+                </Button>
+              </form>
 
-            {showFilters && <JobFilters />}
-          </div>
+              {showFilters && <JobFilters />}
+            </div>
+          )}
 
           {/* Jobs Grid */}
           {jobs.length === 0 && !isLoading ? (

@@ -12,6 +12,7 @@ interface JobState {
   page: number
   filters: JobFilters
   searchJobs: (query?: string, filters?: JobFilters, refresh?: boolean) => Promise<void>
+  loadMyJobs: () => Promise<void>
   getJobMatches: (jobId: string) => Promise<void>
   getApplicants: (jobId: string) => Promise<void>
   rankApplicants: (jobId: string) => Promise<void>
@@ -111,6 +112,23 @@ export const useJobStore = create<JobState>((set, get) => ({
     }
   },
 
+  loadMyJobs: async () => {
+    set({ isLoading: true })
+
+    try {
+      const jobs = await apiClient.get<Job[]>('/jobs/my-jobs')
+      set({
+        jobs,
+        isLoading: false,
+        hasMore: false,
+        page: 0
+      })
+    } catch (error) {
+      console.error("Error loading my jobs:", error)
+      set({ isLoading: false, jobs: [] })
+    }
+  },
+
   getJobMatches: async (jobId: string) => {
     try {
       console.debug(`[JOB STORE] getJobMatches jobId=${jobId}`)
@@ -151,7 +169,7 @@ export const useJobStore = create<JobState>((set, get) => ({
     try {
       console.debug(`[JOB STORE] getAIRanking jobId=${jobId}`)
       console.log(`[JOB STORE] Calling endpoint: /ai/match/job/${jobId}/candidates?limit=100`)
-      
+
       const data = await apiClient.get<{
         jobId: string
         jobTitle: string
@@ -178,28 +196,24 @@ export const useJobStore = create<JobState>((set, get) => ({
         averageScore: number
         topSkillsMatched: string[]
       }>(`/ai/match/job/${jobId}/candidates?limit=100`)
-      
+
       console.log('[JOB STORE] Full data:', data)
       console.log('[JOB STORE] Data type:', typeof data)
       console.log('[JOB STORE] Data keys:', data ? Object.keys(data) : 'null/undefined')
-      
-      // If data is a string, it's probably an error HTML page or error message
-      if (typeof data === 'string') {
-        console.error('[JOB STORE] Backend returned string instead of JSON:', data.substring(0, 500))
-        throw new Error(`Backend returned invalid response (string). First 200 chars: ${data.substring(0, 200)}`)
-      }
-      
+
+      // Type guard: check if data is valid
       if (!data) {
         throw new Error('No data received from AI service - Backend may not be running')
       }
-      
-      if (!data.matches || !Array.isArray(data.matches)) {
+
+      // Check if response has the expected structure
+      if (typeof data !== 'object' || !('matches' in data) || !Array.isArray(data.matches)) {
         console.error('[JOB STORE] Invalid data structure:', data)
-        throw new Error(`Invalid response format: matches is missing or not an array. Received: ${JSON.stringify(data)}`)
+        throw new Error(`Invalid response format: matches is missing or not an array. Received: ${JSON.stringify(data).substring(0, 200)}`)
       }
-      
+
       console.debug(`[JOB STORE] getAIRanking received ${data.matches.length} AI-ranked matches`)
-      
+
       // Merge AI data with existing applicants
       set((state) => ({
         applicants: state.applicants.map(app => {
