@@ -20,7 +20,6 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const { clipers, loadClipers, loadMyClipers } = useCliperStore()
   const { jobs, searchJobs } = useJobStore()
-  const { user } = useAuthStore()
 
   const isCompany = profile && "name" in profile
 
@@ -28,14 +27,18 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
     if (isCompany && isOwnProfile) {
       // Load company jobs
       searchJobs("", {}, true)
-    } else if (isOwnProfile) {
-      // Load user's own clipers
-      loadMyClipers()
-    } else {
-      // Load public clipers for other users' profiles
-      loadClipers(true)
+    } else if (profile && profile.id) {
+      // Load clipers for this specific user profile
+      // For now, if it's own profile use loadMyClipers, otherwise we need to fetch by userId
+      if (isOwnProfile) {
+        loadMyClipers()
+      } else {
+        // TODO: Need to implement loadClipersByUserId
+        // For now, load all and filter client-side
+        loadClipers(true)
+      }
     }
-  }, [isCompany, isOwnProfile, loadClipers, loadMyClipers, searchJobs])
+  }, [isCompany, isOwnProfile, profile, loadMyClipers, loadClipers, searchJobs])
 
   if (isCompany) {
     // Show company jobs
@@ -94,6 +97,9 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
   }
 
   // Show user clipers
+  // Filter clipers to show only those belonging to this profile
+  const userClipers = profile ? clipers.filter(c => c.userId === profile.id) : clipers
+
   return (
     <>
       <div className="space-y-6">
@@ -107,10 +113,10 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
           )}
         </div>
 
-        {clipers && clipers.length > 0 ? (
+        {userClipers && userClipers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clipers.map((cliper, index) => (
-              <CliperCard key={index} cliper={cliper} />
+            {userClipers.map((cliper, index) => (
+              <CliperCard key={index} cliper={cliper} showActions={false} />
             ))}
           </div>
         ) : (

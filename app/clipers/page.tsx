@@ -11,20 +11,17 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Share2, Play, RefreshCw, MoreHorizontal } from "lucide-react"
-import type { Cliper, Comment } from "@/lib/types"
+import { Plus, Share2, Play, RefreshCw, MoreHorizontal, Trash2 } from "lucide-react"
+import type { Cliper } from "@/lib/types"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { Trash2 } from "lucide-react"
 import { CliperPlayer } from "@/components/clipers/cliper-player"
 
 export default function ClipersPage() {
-  const { clipers, isLoading, hasMore, loadClipers, deleteCliper } = useCliperStore()
+  const { clipers, isLoading, hasMore, loadClipers, deleteCliper, toggleLike, addComment, deleteComment } = useCliperStore()
   const [showUploadModal, setShowUploadModal] = useState(false)
-  const [engagement, setEngagement] = useState<Record<string, { postId?: string; likes: number; isLiked: boolean; comments: number }>>({})
-  const [commentsByCliper, setCommentsByCliper] = useState<Record<string, Comment[]>>({})
   const [newCommentByCliper, setNewCommentByCliper] = useState<Record<string, string>>({})
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -89,20 +86,11 @@ export default function ClipersPage() {
   }
 
   const handleLike = async (cliper: Cliper) => {
-    // Implementar likes directamente en clipers sin crear posts
     try {
-      // TODO: Implementar endpoint de likes para clipers
-      const curr = engagement[cliper.id] || { likes: 0, isLiked: false, comments: 0 }
-      const newIsLiked = !curr.isLiked
-
-      setEngagement((prev) => {
-        const likes = Math.max(0, curr.likes + (newIsLiked ? 1 : -1))
-        return { ...prev, [cliper.id]: { ...curr, isLiked: newIsLiked, likes } }
-      })
-
+      const result = await toggleLike(cliper.id)
       toast({
-        title: "Me gusta",
-        description: newIsLiked ? "Te gusta este cliper" : "Ya no te gusta este cliper"
+        title: result.liked ? "❤️ Te gusta" : "Me gusta eliminado",
+        description: result.liked ? "Te gusta este cliper" : "Ya no te gusta este cliper"
       })
     } catch {
       toast({ title: "Error", description: "No se pudo dar me gusta al cliper.", variant: "destructive" })
@@ -114,51 +102,29 @@ export default function ClipersPage() {
     if (!comment?.trim()) return
     
     try {
-      // Crear comentario local (simulado hasta que backend esté listo)
-      const newComment: Comment = {
-        id: `temp-${Date.now()}`,
-        content: comment.trim(),
-        userId: user?.id || "",
-        postId: cliperId, // Usar cliperId como postId temporal
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        user: {
-          id: user?.id || "",
-          firstName: user?.firstName || "Usuario",
-          lastName: user?.lastName || "",
-          email: user?.email || "",
-          profileImage: user?.profileImage,
-          role: user?.role || "CANDIDATE",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      }
-      
-      // Agregar comentario al estado local
-      setCommentsByCliper(prev => ({
-        ...prev,
-        [cliperId]: [...(prev[cliperId] || []), newComment]
-      }))
-      
-      // Actualizar contador de comentarios
-      setEngagement(prev => ({
-        ...prev,
-        [cliperId]: {
-          ...prev[cliperId],
-          comments: (prev[cliperId]?.comments || 0) + 1
-        }
-      }))
+      await addComment(cliperId, comment.trim())
       
       // Limpiar el input
       setNewCommentByCliper(prev => ({ ...prev, [cliperId]: "" }))
       
       toast({
-        title: "Comentario agregado",
-        description: "Tu comentario se ha agregado correctamente.",
-        variant: "default"
+        title: "💬 Comentario agregado",
+        description: "Tu comentario se ha agregado correctamente."
       })
     } catch {
       toast({ title: "Error", description: "No se pudo enviar el comentario.", variant: "destructive" })
+    }
+  }
+
+  const handleDeleteComment = async (cliperId: string, commentId: string) => {
+    try {
+      await deleteComment(cliperId, commentId)
+      toast({
+        title: "Comentario eliminado",
+        description: "El comentario se ha eliminado correctamente."
+      })
+    } catch {
+      toast({ title: "Error", description: "No se pudo eliminar el comentario.", variant: "destructive" })
     }
   }
 
@@ -286,18 +252,14 @@ export default function ClipersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleLike(cliper)}
-                            className={`flex items-center gap-1 sm:gap-2 font-semibold transition-all h-8 px-2 sm:px-3 ${
-                              engagement[cliper.id]?.isLiked 
-                                ? 'text-red-500 hover:text-red-600 hover:bg-red-500/10' 
-                                : 'text-muted-foreground hover:text-red-500 hover:bg-red-500/10'
-                            }`}
+                            className="flex items-center gap-1 sm:gap-2 font-semibold transition-all h-8 px-2 sm:px-3 text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
                           >
                             <span className="text-base sm:text-xl">❤️</span>
-                            <span className="text-xs sm:text-sm">{engagement[cliper.id]?.likes || 0}</span>
+                            <span className="text-xs sm:text-sm">{cliper.likesCount || 0}</span>
                           </Button>
                           <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
                             <span className="text-base sm:text-xl">💬</span>
-                            <span className="font-semibold text-xs sm:text-sm">{commentsByCliper[cliper.id]?.length || 0}</span>
+                            <span className="font-semibold text-xs sm:text-sm">{cliper.commentsCount || 0}</span>
                           </div>
                         </div>
                         
@@ -351,9 +313,9 @@ export default function ClipersPage() {
                       <h4 className="text-xs sm:text-sm font-semibold text-foreground mb-2 sm:mb-3">Comentarios</h4>
                       
                       {/* Lista de comentarios */}
-                      {commentsByCliper[cliper.id] && commentsByCliper[cliper.id].length > 0 ? (
+                      {cliper.comments && cliper.comments.length > 0 ? (
                         <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4 max-h-48 sm:max-h-60 overflow-y-auto">
-                          {commentsByCliper[cliper.id].map((comment) => (
+                          {cliper.comments.map((comment: any) => (
                             <div key={comment.id} className="flex items-start gap-2 sm:gap-3">
                               <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
                                 <AvatarImage src={comment.user?.profileImage || "/placeholder.svg"} />
@@ -362,11 +324,21 @@ export default function ClipersPage() {
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
-                                <div className="bg-muted/30 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
+                                <div className="bg-muted/30 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 relative group">
                                   <p className="font-semibold text-xs sm:text-sm text-foreground truncate">
                                     {comment.user?.firstName} {comment.user?.lastName}
                                   </p>
-                                  <p className="text-xs sm:text-sm text-muted-foreground break-words">{comment.content}</p>
+                                  <p className="text-xs sm:text-sm text-muted-foreground break-words">{comment.text}</p>
+                                  {user && user.id === comment.userId && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteComment(cliper.id, comment.id)}
+                                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <Trash2 className="h-3 w-3 text-destructive" />
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             </div>

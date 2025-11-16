@@ -7,20 +7,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
+
 import { Input } from "@/components/ui/input"
 import { useCliperStore } from "@/store/cliper-store"
 import { useAuthStore } from "@/store/auth-store"
 import type { Cliper } from "@/lib/types"
-import { FiPlay, FiDownload, FiShare2, FiUser, FiClock, FiTag, FiHeart, FiMessageCircle, FiSend, FiTrash2 } from "react-icons/fi"
+import { FiPlay, FiUser, FiClock, FiTag, FiHeart, FiMessageCircle, FiSend, FiTrash2 } from "react-icons/fi"
 
 interface CliperModalProps {
   cliper: Cliper
   open: boolean
   onOpenChange: (open: boolean) => void
+  showActions?: boolean // Show likes and comments
 }
 
-export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
+export function CliperModal({ cliper, open, onOpenChange, showActions = true }: CliperModalProps) {
   const [currentCliper, setCurrentCliper] = useState(cliper)
   const [commentText, setCommentText] = useState("")
   const [isLiked, setIsLiked] = useState(false)
@@ -79,6 +80,38 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
     }
   }
 
+  const handleToggleLike = async () => {
+    if (!user) return
+    try {
+      const result = await toggleLike(currentCliper.id)
+      setIsLiked(result.liked)
+      setLikesCount(result.likesCount)
+    } catch (error) {
+      console.error("Error toggling like:", error)
+    }
+  }
+
+  const handleAddComment = async () => {
+    if (!user || !commentText.trim()) return
+    try {
+      const updatedCliper = await addComment(currentCliper.id, commentText.trim())
+      setCurrentCliper(updatedCliper)
+      setCommentText("")
+    } catch (error) {
+      console.error("Error adding comment:", error)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user) return
+    try {
+      const updatedCliper = await deleteComment(currentCliper.id, commentId)
+      setCurrentCliper(updatedCliper)
+    } catch (error) {
+      console.error("Error deleting comment:", error)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -122,16 +155,6 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
             {/* Video Actions */}
             <div className="flex items-center justify-between">
               <Badge className={`${getStatusColor(currentCliper.status)}`}>{getStatusText(currentCliper.status)}</Badge>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <FiDownload className="h-4 w-4 mr-2" />
-                  Descargar
-                </Button>
-                <Button variant="outline" size="sm">
-                  <FiShare2 className="h-4 w-4 mr-2" />
-                  Compartir
-                </Button>
-              </div>
             </div>
           </div>
 
@@ -158,6 +181,50 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
               <h2 className="text-2xl font-bold text-balance">{currentCliper.title}</h2>
               <p className="text-muted-foreground text-pretty">{currentCliper.description}</p>
             </div>
+
+            {/* Social Actions - Moved to top */}
+            {showActions && (
+              <div className="space-y-4 pt-4 border-t border-b pb-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant={isLiked ? "default" : "outline"}
+                    size="sm"
+                    onClick={handleToggleLike}
+                    className="flex-1"
+                  >
+                    <FiHeart className={`h-4 w-4 mr-2 ${isLiked ? "fill-current" : ""}`} />
+                    {likesCount} Me gusta
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <FiMessageCircle className="h-4 w-4 mr-2" />
+                    {currentCliper.commentsCount || 0} Comentarios
+                  </Button>
+                </div>
+
+                {/* Add Comment */}
+                {user && (
+                  <div className="flex gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>
+                        <FiUser className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 flex gap-2">
+                      <Input
+                        placeholder="Comentar..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleAddComment()}
+                        className="flex-1"
+                      />
+                      <Button size="sm" onClick={handleAddComment} disabled={!commentText.trim()}>
+                        <FiSend className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Skills */}
             {currentCliper.skills.length > 0 && (
@@ -208,52 +275,10 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
               </>
             )}
 
-            {/* Social Actions */}
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant={isLiked ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleToggleLike}
-                  className="flex-1"
-                >
-                  <FiHeart className={`h-4 w-4 mr-2 ${isLiked ? "fill-current" : ""}`} />
-                  {likesCount} Me gusta
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <FiMessageCircle className="h-4 w-4 mr-2" />
-                  {currentCliper.commentsCount || 0} Comentarios
-                </Button>
-              </div>
-
-              {/* Comments Section */}
-              <div className="space-y-4">
+            {/* Comments List */}
+            {showActions && (
+              <div className="space-y-3">
                 <h3 className="font-semibold">Comentarios</h3>
-                
-                {/* Add Comment */}
-                {user && (
-                  <div className="flex gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        <FiUser className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 flex gap-2">
-                      <Input
-                        placeholder="Comentar..."
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
-                        className="flex-1"
-                      />
-                      <Button size="sm" onClick={handleAddComment} disabled={!commentText.trim()}>
-                        <FiSend className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Comments List */}
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {currentCliper.comments && currentCliper.comments.length > 0 ? (
                     currentCliper.comments.map((comment: any) => (
@@ -293,42 +318,10 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
                   )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </DialogContent>
     </Dialog>
   )
-
-  async function handleToggleLike() {
-    if (!user) return
-    try {
-      const result = await toggleLike(currentCliper.id)
-      setIsLiked(result.liked)
-      setLikesCount(result.likesCount)
-    } catch (error) {
-      console.error("Error toggling like:", error)
-    }
-  }
-
-  async function handleAddComment() {
-    if (!user || !commentText.trim()) return
-    try {
-      const updatedCliper = await addComment(currentCliper.id, commentText.trim())
-      setCurrentCliper(updatedCliper)
-      setCommentText("")
-    } catch (error) {
-      console.error("Error adding comment:", error)
-    }
-  }
-
-  async function handleDeleteComment(commentId: string) {
-    if (!user) return
-    try {
-      const updatedCliper = await deleteComment(currentCliper.id, commentId)
-      setCurrentCliper(updatedCliper)
-    } catch (error) {
-      console.error("Error deleting comment:", error)
-    }
-  }
 }

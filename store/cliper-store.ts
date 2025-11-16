@@ -164,7 +164,9 @@ export const useCliperStore = create<CliperState>((set, get) => ({
 
   toggleLike: async (cliperId: string) => {
     try {
+      console.log("🌐 Store: Calling API to toggle like for cliper:", cliperId)
       const response = await apiClient.post<{ liked: boolean; likesCount: number }>(`/clipers/${cliperId}/like`)
+      console.log("🌐 Store: API response:", response)
       
       // Update cliper in store
       set((state) => ({
@@ -175,14 +177,16 @@ export const useCliperStore = create<CliperState>((set, get) => ({
 
       return response
     } catch (error) {
-      console.error("Error toggling like:", error)
+      console.error("❌ Store: Error toggling like:", error)
       throw error
     }
   },
 
   addComment: async (cliperId: string, text: string) => {
     try {
+      console.log("🌐 Store: Calling API to add comment for cliper:", cliperId, "text:", text)
       const cliper = await apiClient.post<Cliper>(`/clipers/${cliperId}/comments`, { text })
+      console.log("🌐 Store: API response:", cliper)
       
       // Update cliper in store
       set((state) => ({
@@ -191,7 +195,7 @@ export const useCliperStore = create<CliperState>((set, get) => ({
 
       return cliper
     } catch (error) {
-      console.error("Error adding comment:", error)
+      console.error("❌ Store: Error adding comment:", error)
       throw error
     }
   },
