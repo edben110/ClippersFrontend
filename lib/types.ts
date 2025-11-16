@@ -3,6 +3,7 @@ export interface User {
   email: string
   firstName: string
   lastName: string
+  name?: string // For backward compatibility
   role: "CANDIDATE" | "COMPANY" | "ADMIN"
   profileImage?: string
   phone?: string

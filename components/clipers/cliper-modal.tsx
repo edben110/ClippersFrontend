@@ -146,7 +146,9 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold">Usuario</p>
+                <p className="font-semibold">
+                  {currentCliper.user ? `${currentCliper.user.firstName} ${currentCliper.user.lastName}` : "Usuario"}
+                </p>
                 <p className="text-sm text-muted-foreground">Candidato • {formatDistanceToNow(new Date(currentCliper.createdAt), { addSuffix: true, locale: es })}</p>
               </div>
             </div>

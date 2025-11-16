@@ -98,7 +98,9 @@ export function CliperCard({ cliper }: CliperCardProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold text-sm">Usuario</p>
+                <p className="font-semibold text-sm">
+                  {cliper.user ? `${cliper.user.firstName} ${cliper.user.lastName}` : "Usuario"}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(cliper.createdAt), {
                     addSuffix: true,
