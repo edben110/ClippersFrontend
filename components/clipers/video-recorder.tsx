@@ -124,15 +124,18 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
     if (recorderRef.current && isRecording) {
       recorderRef.current.stop();
       setIsRecording(false);
+      // Stop camera after recording
+      stopCamera();
     }
-  }, [isRecording]);
+  }, [isRecording, stopCamera]);
 
   const resetRecording = useCallback(() => {
     setRecordedVideo(null);
     setRecordingTime(0);
     setIsRecording(false);
     chunksRef.current = [];
-  }, []);
+    stopCamera();
+  }, [stopCamera]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -141,33 +144,32 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardContent className="p-4 space-y-3">
+    <Card className="w-full mx-auto border-0 shadow-none">
+      <CardContent className="p-0 space-y-3 sm:space-y-4">
         {/* Video Preview */}
-        <div className="relative bg-black rounded-lg overflow-hidden">
+        <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            className="w-full h-40 object-cover"
-            style={{ display: hasPermission ? 'block' : 'none' }}
+            className="w-full h-full object-cover"
+            style={{ display: hasPermission && !recordedVideo ? 'block' : 'none' }}
           />
 
           {recordedVideo && (
             <video
               src={recordedVideo}
               controls
-              className="w-full h-40 object-cover"
-              style={{ display: recordedVideo ? 'block' : 'none' }}
+              className="w-full h-full object-cover"
             />
           )}
 
           {!hasPermission && !recordedVideo && (
-            <div className="w-full h-40 flex items-center justify-center text-white">
-              <div className="text-center">
-                <VideoOff className="w-8 h-8 mx-auto mb-1 opacity-50" />
-                <p className="text-sm">Cámara no activada</p>
+            <div className="w-full h-full flex items-center justify-center text-white min-h-[200px] sm:min-h-[300px]">
+              <div className="text-center px-4">
+                <VideoOff className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm sm:text-base">Cámara no activada</p>
               </div>
             </div>
           )}
@@ -176,9 +178,9 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
         {/* Recording Timer */}
         {isRecording && (
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-full">
+            <div className="inline-flex items-center gap-2 bg-red-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm sm:text-base">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-              <span className="font-mono">{formatTime(recordingTime)}</span>
+              <span className="font-mono font-semibold">{formatTime(recordingTime)}</span>
             </div>
           </div>
         )}
@@ -186,7 +188,7 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
         {/* Controls */}
         <div className="space-y-2">
           {!hasPermission && !recordedVideo && (
-            <Button onClick={startCamera} variant="outline" size="sm" className="w-full">
+            <Button onClick={startCamera} variant="outline" className="w-full h-11 sm:h-10 text-sm sm:text-base">
               <Video className="w-4 h-4 mr-2" />
               Activar Cámara
             </Button>
@@ -194,54 +196,39 @@ export const VideoRecorder: React.FC<VideoRecorderProps> = ({
 
           {hasPermission && !isRecording && !recordedVideo && (
             <div className="flex gap-2">
-              <Button onClick={startRecording} variant="default" size="sm" className="flex-1">
+              <Button onClick={startRecording} variant="default" className="flex-1 h-11 sm:h-10 text-sm sm:text-base">
                 <Play className="w-4 h-4 mr-2" />
                 Grabar
               </Button>
-              <Button onClick={stopCamera} variant="outline" size="sm">
+              <Button onClick={stopCamera} variant="outline" className="h-11 sm:h-10 px-3 sm:px-4">
                 <VideoOff className="w-4 h-4" />
               </Button>
             </div>
           )}
 
           {isRecording && (
-            <Button onClick={stopRecording} variant="destructive" size="sm" className="w-full">
+            <Button onClick={stopRecording} variant="destructive" className="w-full h-11 sm:h-10 text-sm sm:text-base">
               <Square className="w-4 h-4 mr-2" />
               Detener Grabación
             </Button>
           )}
 
           {recordedVideo && (
-            <div className="space-y-2">
-              <Button
-                onClick={() => onVideoRecorded(new Blob(chunksRef.current, { type: mimeType }))}
-                variant="default"
-                size="sm"
-                className="w-full"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Usar este video
+            <div className="flex gap-2">
+              <Button onClick={resetRecording} variant="outline" className="flex-1 h-11 sm:h-10 text-sm sm:text-base">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Grabar de nuevo
               </Button>
-              <div className="flex gap-2">
-                <Button onClick={resetRecording} variant="outline" size="sm" className="flex-1">
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Nuevo
-                </Button>
-                <Button onClick={startCamera} variant="outline" size="sm" className="flex-1">
-                  <Video className="w-4 h-4 mr-2" />
-                  Regrabar
-                </Button>
-              </div>
             </div>
           )}
         </div>
 
         {/* Simple Instructions */}
-        <div className="text-xs text-muted-foreground text-center">
+        <div className="text-xs sm:text-sm text-muted-foreground text-center px-2">
           {!hasPermission && !recordedVideo && "Activa la cámara para comenzar"}
-          {hasPermission && !isRecording && !recordedVideo && `Graba hasta ${maxDuration} segundos`}
+          {hasPermission && !isRecording && !recordedVideo && `Puedes grabar hasta ${maxDuration} segundos`}
           {isRecording && "Grabando..."}
-          {recordedVideo && "Video listo para usar"}
+          {recordedVideo && "Vista previa del video grabado"}
         </div>
       </CardContent>
     </Card>
