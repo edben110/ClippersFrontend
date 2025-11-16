@@ -128,7 +128,19 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
         handleClose()
       }, 2000)
     } catch (err: any) {
-      setError(err.response?.data?.message || "Error al subir el cliper")
+      const errorMessage = err.response?.data?.message || err.message || "Error al subir el cliper"
+      
+      // Mensajes de error más específicos
+      if (errorMessage.includes("servicio de procesamiento")) {
+        setError("El servicio de procesamiento de video no está disponible. Por favor, intenta más tarde.")
+      } else if (errorMessage.includes("duración") || errorMessage.includes("duration")) {
+        setError("El video debe durar entre 15 segundos y 2 minutos.")
+      } else if (errorMessage.includes("ya tienes un cliper")) {
+        setError("Ya tienes un cliper. Este será reemplazado por el nuevo.")
+      } else {
+        setError(errorMessage)
+      }
+      
       setIsUploading(false)
     }
   }
@@ -164,9 +176,9 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
               <FiCheck className="h-8 w-8 text-success" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">¡Cliper subido exitosamente!</h3>
+              <h3 className="text-lg font-semibold">¡Cliper creado exitosamente!</h3>
               <p id="upload-success-description" className="text-muted-foreground text-sm">
-                Tu cliper está siendo procesado. Recibirás una notificación cuando esté listo.
+                Tu cliper ha sido procesado y tu perfil ATS ha sido actualizado automáticamente.
               </p>
             </div>
           </div>
