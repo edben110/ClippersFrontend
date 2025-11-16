@@ -29,6 +29,35 @@ export function AddSkillModal({ open, onOpenChange }: AddSkillModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validar que todos los campos estén llenos
+    if (!formData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "El nombre de la habilidad es requerido.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!formData.level) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar un nivel.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!formData.category) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar una categoría.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -118,7 +147,10 @@ export function AddSkillModal({ open, onOpenChange }: AddSkillModalProps) {
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.name.trim() || !formData.level || !formData.category}
+            >
               {isLoading ? "Guardando..." : "Agregar habilidad"}
             </Button>
           </div>
