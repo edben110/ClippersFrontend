@@ -45,8 +45,19 @@ export interface Cliper {
   skills: string[]
   userId: string
   user?: User
+  likesCount: number
+  commentsCount: number
+  comments: CliperComment[]
   createdAt: string
   updatedAt: string
+}
+
+export interface CliperComment {
+  id: string
+  userId: string
+  userName: string
+  text: string
+  createdAt: string
 }
 
 export interface Job {

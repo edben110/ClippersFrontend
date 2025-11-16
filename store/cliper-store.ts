@@ -14,6 +14,9 @@ interface CliperState {
   getCliperStatus: (cliperId: string) => Promise<Cliper>
   pollCliperUntilDone: (cliperId: string, intervalMs?: number, timeoutMs?: number) => Promise<void>
   deleteCliper: (cliperId: string) => Promise<void>
+  toggleLike: (cliperId: string) => Promise<{ liked: boolean; likesCount: number }>
+  addComment: (cliperId: string, text: string) => Promise<Cliper>
+  deleteComment: (cliperId: string, commentId: string) => Promise<Cliper>
 }
 
 export const useCliperStore = create<CliperState>((set, get) => ({
@@ -155,6 +158,56 @@ export const useCliperStore = create<CliperState>((set, get) => ({
       }))
     } catch (error) {
       console.error("Error deleting cliper:", error)
+      throw error
+    }
+  },
+
+  toggleLike: async (cliperId: string) => {
+    try {
+      const response = await apiClient.post<{ liked: boolean; likesCount: number }>(`/clipers/${cliperId}/like`)
+      
+      // Update cliper in store
+      set((state) => ({
+        clipers: state.clipers.map((c) => 
+          c.id === cliperId ? { ...c, likesCount: response.likesCount } : c
+        ),
+      }))
+
+      return response
+    } catch (error) {
+      console.error("Error toggling like:", error)
+      throw error
+    }
+  },
+
+  addComment: async (cliperId: string, text: string) => {
+    try {
+      const cliper = await apiClient.post<Cliper>(`/clipers/${cliperId}/comments`, { text })
+      
+      // Update cliper in store
+      set((state) => ({
+        clipers: state.clipers.map((c) => (c.id === cliperId ? cliper : c)),
+      }))
+
+      return cliper
+    } catch (error) {
+      console.error("Error adding comment:", error)
+      throw error
+    }
+  },
+
+  deleteComment: async (cliperId: string, commentId: string) => {
+    try {
+      const cliper = await apiClient.delete<Cliper>(`/clipers/${cliperId}/comments/${commentId}`)
+      
+      // Update cliper in store
+      set((state) => ({
+        clipers: state.clipers.map((c) => (c.id === cliperId ? cliper : c)),
+      }))
+
+      return cliper
+    } catch (error) {
+      console.error("Error deleting comment:", error)
       throw error
     }
   },

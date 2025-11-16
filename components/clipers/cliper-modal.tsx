@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
 import { useCliperStore } from "@/store/cliper-store"
+import { useAuthStore } from "@/store/auth-store"
 import type { Cliper } from "@/lib/types"
-import { FiPlay, FiDownload, FiShare2, FiUser, FiClock, FiTag } from "react-icons/fi"
+import { FiPlay, FiDownload, FiShare2, FiUser, FiClock, FiTag, FiHeart, FiMessageCircle, FiSend, FiTrash2 } from "react-icons/fi"
 
 interface CliperModalProps {
   cliper: Cliper
@@ -20,10 +22,15 @@ interface CliperModalProps {
 
 export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
   const [currentCliper, setCurrentCliper] = useState(cliper)
-  const { getCliperStatus } = useCliperStore()
+  const [commentText, setCommentText] = useState("")
+  const [isLiked, setIsLiked] = useState(false)
+  const [likesCount, setLikesCount] = useState(0)
+  const { getCliperStatus, toggleLike, addComment, deleteComment } = useCliperStore()
+  const { user } = useAuthStore()
 
   useEffect(() => {
     setCurrentCliper(cliper)
+    setLikesCount(cliper.likesCount || 0)
   }, [cliper])
 
   useEffect(() => {
@@ -200,12 +207,89 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
             )}
 
             {/* Social Actions */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                <span className="flex items-center space-x-1">
-                  <span>📤</span>
-                  <span>Compartir</span>
-                </span>
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant={isLiked ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleToggleLike}
+                  className="flex-1"
+                >
+                  <FiHeart className={`h-4 w-4 mr-2 ${isLiked ? "fill-current" : ""}`} />
+                  {likesCount} Me gusta
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1">
+                  <FiMessageCircle className="h-4 w-4 mr-2" />
+                  {currentCliper.commentsCount || 0} Comentarios
+                </Button>
+              </div>
+
+              {/* Comments Section */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">Comentarios</h3>
+                
+                {/* Add Comment */}
+                {user && (
+                  <div className="flex gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>
+                        <FiUser className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 flex gap-2">
+                      <Input
+                        placeholder="Comentar..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+                        className="flex-1"
+                      />
+                      <Button size="sm" onClick={handleAddComment} disabled={!commentText.trim()}>
+                        <FiSend className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Comments List */}
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {currentCliper.comments && currentCliper.comments.length > 0 ? (
+                    currentCliper.comments.map((comment: any) => (
+                      <div key={comment.id} className="flex gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            <FiUser className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 bg-muted/50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-semibold text-sm">{comment.userName}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
+                              </p>
+                              {user && user.id === comment.userId && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <FiTrash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-sm">{comment.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Sé el primero en comentar.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -213,4 +297,36 @@ export function CliperModal({ cliper, open, onOpenChange }: CliperModalProps) {
       </DialogContent>
     </Dialog>
   )
+
+  async function handleToggleLike() {
+    if (!user) return
+    try {
+      const result = await toggleLike(currentCliper.id)
+      setIsLiked(result.liked)
+      setLikesCount(result.likesCount)
+    } catch (error) {
+      console.error("Error toggling like:", error)
+    }
+  }
+
+  async function handleAddComment() {
+    if (!user || !commentText.trim()) return
+    try {
+      const updatedCliper = await addComment(currentCliper.id, commentText.trim())
+      setCurrentCliper(updatedCliper)
+      setCommentText("")
+    } catch (error) {
+      console.error("Error adding comment:", error)
+    }
+  }
+
+  async function handleDeleteComment(commentId: string) {
+    if (!user) return
+    try {
+      const updatedCliper = await deleteComment(currentCliper.id, commentId)
+      setCurrentCliper(updatedCliper)
+    } catch (error) {
+      console.error("Error deleting comment:", error)
+    }
+  }
 }

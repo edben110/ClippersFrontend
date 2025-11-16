@@ -133,9 +133,18 @@ export function CliperCard({ cliper }: CliperCardProps) {
             {/* Actions */}
             <div className="flex items-center justify-between pt-2 border-t">
               <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                <span>👍 Me gusta</span>
-                <span>💬 Comentar</span>
-                <span>📤 Compartir</span>
+                <button className="flex items-center space-x-1 hover:text-primary transition-colors">
+                  <span>❤️</span>
+                  <span>{cliper.likesCount || 0}</span>
+                </button>
+                <button className="flex items-center space-x-1 hover:text-primary transition-colors">
+                  <span>💬</span>
+                  <span>{cliper.commentsCount || 0}</span>
+                </button>
+                <button className="flex items-center space-x-1 hover:text-primary transition-colors">
+                  <span>📤</span>
+                  <span>Compartir</span>
+                </button>
               </div>
               <Button variant="ghost" size="sm">
                 <MoreHorizontal className="h-4 w-4" />
