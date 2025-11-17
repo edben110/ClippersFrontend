@@ -113,9 +113,14 @@ export default function JobsPage() {
                 <FiRefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
               </Button>
               {!isCompany && (
-                <Button variant="outline" onClick={() => router.push("/jobs/my-applications")}>
-                  Mis Aplicaciones
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => router.push("/jobs/my-applications")}>
+                    Mis Aplicaciones
+                  </Button>
+                  <Button variant="outline" onClick={() => router.push("/jobs/my-tests")}>
+                    Mis Pruebas
+                  </Button>
+                </>
               )}
               {isCompany && (
                 <Button onClick={() => setShowCreateModal(true)}>

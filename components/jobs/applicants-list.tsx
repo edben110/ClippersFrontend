@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { useJobStore } from "@/store/job-store"
+import { SendTechnicalTestButton } from "@/components/jobs/send-technical-test-button"
+import { ViewTechnicalTestsButton } from "@/components/jobs/view-technical-tests-button"
 import type { JobApplication } from "@/lib/types"
 import { FiMail, FiUser, FiAward, FiTrendingUp, FiTrendingDown, FiAlertCircle } from "react-icons/fi"
 
@@ -319,7 +321,7 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
               <Separator />
 
               {/* Status and actions */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center space-x-3">
                   <Badge className={getStatusColor(app.status)}>
                     {getStatusText(app.status)}
@@ -333,26 +335,43 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
                   </span>
                 </div>
 
-                {app.status === "PENDING" && (
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => handleUpdateStatus(app.id, "ACCEPTED")}
-                      disabled={updatingId === app.id}
-                    >
-                      {updatingId === app.id ? "Actualizando..." : "Aceptar"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleUpdateStatus(app.id, "REJECTED")}
-                      disabled={updatingId === app.id}
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {/* View Technical Tests Button */}
+                  <ViewTechnicalTestsButton
+                    jobId={jobId}
+                    candidateId={app.userId}
+                  />
+                  
+                  {/* Send Technical Test Button - Available for top candidates */}
+                  {(index < 5 || app.status === "ACCEPTED") && (
+                    <SendTechnicalTestButton
+                      jobId={jobId}
+                      candidateId={app.userId}
+                      candidateName={`${app.user?.firstName} ${app.user?.lastName}`}
+                    />
+                  )}
+                  
+                  {app.status === "PENDING" && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleUpdateStatus(app.id, "ACCEPTED")}
+                        disabled={updatingId === app.id}
+                      >
+                        {updatingId === app.id ? "Actualizando..." : "Aceptar"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleUpdateStatus(app.id, "REJECTED")}
+                        disabled={updatingId === app.id}
+                      >
+                        Rechazar
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>

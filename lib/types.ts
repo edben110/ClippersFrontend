@@ -223,3 +223,19 @@ export interface PaginatedResponse<T> {
   hasNext: boolean
   hasPrevious: boolean
 }
+
+export interface TechnicalTest {
+  id: string
+  jobId: string
+  candidateId: string
+  candidateName?: string
+  companyId: string
+  testMarkdown: string
+  status: "SENT" | "IN_PROGRESS" | "SUBMITTED" | "REVIEWED"
+  candidateResponse?: string
+  score?: number
+  feedback?: string
+  createdAt: string
+  submittedAt?: string
+  reviewedAt?: string
+}
