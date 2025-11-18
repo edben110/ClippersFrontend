@@ -14,6 +14,6 @@ export function getImageUrl(imagePath: string | null | undefined): string {
   }
 
   // Construir URL del backend
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:8080"
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "https://backend.clipers.pro"
   return `${baseUrl}${imagePath}`
 }
