@@ -1,11 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +13,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/store/auth-store"
-import { Home, Video, Briefcase, User, Settings, LogOut, Menu, X } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
+import { Home, Video, Briefcase, User, LogOut, Sun, Moon } from "lucide-react"
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore()
   const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  
+  // Usar useTheme de forma segura
+  let theme: "dark" | "light" = "dark"
+  let setTheme: ((theme: "dark" | "light") => void) | undefined
+  
+  try {
+    const themeContext = useTheme()
+    theme = themeContext.theme
+    setTheme = themeContext.setTheme
+  } catch (e) {
+    // ThemeProvider no disponible aún
+  }
 
   const handleLogout = () => {
     logout()
@@ -34,165 +45,150 @@ export function Navbar() {
   ]
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Image src="/LogoClipers.png" alt="Clipers" width={32} height={32} className="h-8 w-8 rounded-lg" />
-            <span className="text-xl font-bold text-foreground">Clipers</span>
-          </Link>
+    <>
+      {/* Top Navbar */}
+      <nav className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/40 backdrop-blur-2xl shadow-sm">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-1 sm:space-x-1.5">
+              <Image src="/LogoClipers.png" alt="Clipers" width={64} height={56} className="h-12 w-14 sm:h-14 sm:w-16 rounded-lg object-contain" priority />
+              <span className="text-xl sm:text-2xl font-bold text-foreground">Clipers</span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          {isAuthenticated && (
-            <div className="hidden md:flex items-center space-x-6 md:ml-12 lg:ml-20">
-              {navItems.map((item) => {
-                const isActive = pathname?.startsWith(item.href)
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center space-x-2 transition-colors relative pb-1 ${isActive ? 'text-foreground border-b-2 border-gray-700' : 'text-muted-foreground hover:text-foreground'}`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
-            {isAuthenticated ? (
-              <>
-                {/* Desktop User Actions */}
-                <div className="hidden md:flex items-center space-x-2">
-                  <Button variant="ghost" asChild>
-                    <Link href="/profile" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      Perfil
+            {/* Navegación centrada - Solo Desktop */}
+            {isAuthenticated && (
+              <div className="hidden md:flex items-center justify-center flex-1 space-x-8 md:-ml-10 lg:-ml-20">
+                {navItems.map((item) => {
+                  const isActive = pathname?.startsWith(item.href)
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`
+                        flex items-center space-x-2 px-4 py-2 rounded-lg
+                        transition-all duration-200 font-medium
+                        ${isActive 
+                          ? 'text-foreground bg-muted/50 border-b-2 border-primary' 
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                        }
+                      `}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
                     </Link>
-                  </Button>
-                  <Button variant="ghost" onClick={handleLogout} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Cerrar sesión
-                  </Button>
-                </div>
+                  )
+                })}
+              </div>
+            )}
 
-                {/* Mobile Menu Button */}
+            {/* Theme Toggle & Avatar */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Theme Toggle Button */}
+              {setTheme && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="md:hidden"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  onClick={() => setTheme?.(theme === "dark" ? "light" : "dark")}
+                  className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                  title={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
                 >
-                  {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                  {theme === "dark" ? (
+                    <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
+                  ) : (
+                    <Moon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
                 </Button>
+              )}
 
-                {/* User Dropdown */}
-                <DropdownMenu>
+              {isAuthenticated ? (
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.profileImage || "/placeholder.svg"} alt={user?.firstName} />
-                        <AvatarFallback>
-                          {user?.firstName?.[0]}
-                          {user?.lastName?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
+                    <button className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50">
+                      <RemoteAvatar
+                        src={user?.profileImage}
+                        alt={user?.firstName || "Usuario"}
+                        fallback={`${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`}
+                        className="h-8 w-8 sm:h-10 sm:w-10 cursor-pointer"
+                      />
+                    </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium">
+                  <DropdownMenuContent className="w-56 z-[100]" align="end" sideOffset={5}>
+                    <div className="flex items-center gap-3 p-3">
+                      <RemoteAvatar
+                        src={user?.profileImage}
+                        alt={user?.firstName || "Usuario"}
+                        fallback={`${user?.firstName?.[0] || "U"}${user?.lastName?.[0] || ""}`}
+                        className="h-12 w-12"
+                      />
+                      <div className="flex flex-col space-y-1 flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="w-[200px] truncate text-sm text-muted-foreground">{user?.email}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                       </div>
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/profile" className="flex items-center">
-                        <User className="mr-2 h-4 w-4" />
-                        Perfil
-                      </Link>
-                    </DropdownMenuItem>
-                    {user?.role === "COMPANY" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/dashboard" className="flex items-center">
-                          <Briefcase className="mr-2 h-4 w-4" />
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings" className="flex items-center">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Configuración
+                      <Link href="/profile" className="flex items-center cursor-pointer">
+                        <User className="mr-3 h-4 w-4" />
+                        Ver perfil
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50">
-                      <LogOut className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem 
+                      onClick={handleLogout} 
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                    >
+                      <LogOut className="mr-3 h-4 w-4" />
                       Cerrar sesión
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/auth/login">Iniciar sesión</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/auth/register">Registrarse</Link>
-                </Button>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button variant="ghost" asChild>
+                    <Link href="/auth/login">Iniciar sesión</Link>
+                  </Button>
+                  <Button asChild>
+                    <Link href="/auth/register">Registrarse</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+      </nav>
 
-        {/* Mobile Navigation */}
-        {isAuthenticated && isMobileMenuOpen && (
-          <div className="md:hidden border-t py-4">
-            <div className="flex flex-col space-y-2">
-              {navItems.map((item) => (
+      {/* Bottom Navigation - Solo Mobile */}
+      {isAuthenticated && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur-xl shadow-lg pb-safe">
+          <div className="flex items-center justify-around h-16 px-2">
+            {navItems.map((item) => {
+              const isActive = pathname?.startsWith(item.href)
+              return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center space-x-2 px-2 py-2 text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`
+                    flex flex-col items-center justify-center space-y-1 px-4 py-2 rounded-lg
+                    transition-all duration-200 flex-1 max-w-[100px]
+                    ${isActive 
+                      ? 'text-primary' 
+                      : 'text-muted-foreground hover:text-foreground'
+                    }
+                  `}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <item.icon className={`h-6 w-6 ${isActive ? 'scale-110' : ''} transition-transform`} />
+                  <span className={`text-xs ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                    {item.label}
+                  </span>
                 </Link>
-              ))}
-              <div className="border-t pt-2 mt-2">
-                <Link
-                  href="/profile"
-                  className="flex items-center space-x-2 px-2 py-2 text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" />
-                  <span>Perfil</span>
-                </Link>
-                <button
-                  onClick={() => {
-                    handleLogout()
-                    setIsMobileMenuOpen(false)
-                  }}
-                  className="flex items-center space-x-2 px-2 py-2 w-full text-left text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Cerrar sesión</span>
-                </button>
-              </div>
-            </div>
+              )
+            })}
           </div>
-        )}
-      </div>
-    </nav>
+        </nav>
+      )}
+    </>
   )
 }

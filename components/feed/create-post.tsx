@@ -81,22 +81,22 @@ export function CreatePost() {
   }
 
   return (
-    <Card className="border-0 shadow-sm">
-      <CardContent className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-start space-x-3">
+    <Card className="glass-card rounded-lg sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+      <CardContent className="p-3 sm:p-6">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="flex items-start space-x-2 sm:space-x-3">
             <RemoteAvatar
-              className="h-10 w-10"
+              className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
               src={user?.profileImage}
               alt={`${user?.firstName} ${user?.lastName}`}
               fallback={`${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`}
             />
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
               <Textarea
                 placeholder="¿Qué está pasando en tu carrera profesional?"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="min-h-[100px] resize-none border-0 bg-muted/50 focus-visible:ring-1"
+                className="min-h-[80px] sm:min-h-[100px] resize-none border border-border bg-card text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary hover:bg-accent/50 transition-all text-sm sm:text-base"
                 maxLength={500}
               />
 
@@ -120,8 +120,8 @@ export function CreatePost() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-1 sm:space-x-2">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -133,27 +133,34 @@ export function CreatePost() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="text-muted-foreground"
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all h-8 px-2 sm:px-3 text-xs sm:text-sm"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingImage}
                   >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    {isUploadingImage ? "Subiendo..." : "Imagen"}
+                    <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">{isUploadingImage ? "Subiendo..." : "Imagen"}</span>
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" disabled>
-                    <VideoIcon className="h-4 w-4 mr-2" />
-                    Video
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all opacity-50 cursor-not-allowed h-8 px-2 sm:px-3 text-xs sm:text-sm hidden sm:flex" 
+                    disabled
+                  >
+                    <VideoIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Video</span>
                   </Button>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-xs text-muted-foreground">{content.length}/500</span>
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground hidden xs:inline">{content.length}/500</span>
                   <Button
                     type="submit"
                     disabled={(!content.trim() && !selectedImage) || isSubmitting || isUploadingImage}
                     size="sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg transition-all duration-200 h-8 px-3 sm:px-3 text-xs sm:text-sm"
                   >
-                    <Send className="h-4 w-4 mr-2" />
-                    {isSubmitting ? "Publicando..." : "Publicar"}
+                    <Send className="h-4 w-4 xs:mr-2" />
+                    <span className="hidden xs:inline">{isSubmitting ? "Publicando..." : "Publicar"}</span>
                   </Button>
                 </div>
               </div>

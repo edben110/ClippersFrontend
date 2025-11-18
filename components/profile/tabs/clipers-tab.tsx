@@ -7,7 +7,6 @@ import { CliperCard } from "@/components/clipers/cliper-card"
 import { UploadCliperModal } from "@/components/clipers/upload-cliper-modal"
 import { useCliperStore } from "@/store/cliper-store"
 import { useJobStore } from "@/store/job-store"
-import { useAuthStore } from "@/store/auth-store"
 import type { User, Company } from "@/lib/types"
 import { FiPlus, FiVideo, FiBriefcase } from "react-icons/fi"
 
@@ -19,23 +18,26 @@ interface ClipersTabProps {
 export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const { clipers, loadClipers, loadMyClipers } = useCliperStore()
-  const { jobs, searchJobs } = useJobStore()
-  const { user } = useAuthStore()
+  const { jobs, loadMyJobs } = useJobStore()
 
   const isCompany = profile && "name" in profile
 
   useEffect(() => {
     if (isCompany && isOwnProfile) {
-      // Load company jobs
-      searchJobs("", {}, true)
-    } else if (isOwnProfile) {
-      // Load user's own clipers
-      loadMyClipers()
-    } else {
-      // Load public clipers for other users' profiles
-      loadClipers(true)
+      // Load only company's own jobs
+      loadMyJobs()
+    } else if (profile && profile.id) {
+      // Load clipers for this specific user profile
+      // For now, if it's own profile use loadMyClipers, otherwise we need to fetch by userId
+      if (isOwnProfile) {
+        loadMyClipers()
+      } else {
+        // TODO: Need to implement loadClipersByUserId
+        // For now, load all and filter client-side
+        loadClipers(true)
+      }
     }
-  }, [isCompany, isOwnProfile, loadClipers, loadMyClipers, searchJobs])
+  }, [isCompany, isOwnProfile, profile, loadMyClipers, loadClipers, loadMyJobs])
 
   if (isCompany) {
     // Show company jobs
@@ -94,6 +96,9 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
   }
 
   // Show user clipers
+  // Filter clipers to show only those belonging to this profile
+  const userClipers = profile ? clipers.filter(c => c.userId === profile.id) : clipers
+
   return (
     <>
       <div className="space-y-6">
@@ -107,10 +112,10 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
           )}
         </div>
 
-        {clipers && clipers.length > 0 ? (
+        {userClipers && userClipers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clipers.map((cliper, index) => (
-              <CliperCard key={index} cliper={cliper} />
+            {userClipers.map((cliper, index) => (
+              <CliperCard key={index} cliper={cliper} showActions={false} />
             ))}
           </div>
         ) : (

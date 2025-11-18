@@ -12,9 +12,11 @@ interface JobState {
   page: number
   filters: JobFilters
   searchJobs: (query?: string, filters?: JobFilters, refresh?: boolean) => Promise<void>
+  loadMyJobs: () => Promise<void>
   getJobMatches: (jobId: string) => Promise<void>
   getApplicants: (jobId: string) => Promise<void>
   rankApplicants: (jobId: string) => Promise<void>
+  getAIRanking: (jobId: string) => Promise<void>
   applyToJob: (jobId: string, message?: string) => Promise<JobApplication>
   getMyApplications: () => Promise<void>
   updateApplicationStatus: (applicationId: string, status: string) => Promise<void>
@@ -110,6 +112,23 @@ export const useJobStore = create<JobState>((set, get) => ({
     }
   },
 
+  loadMyJobs: async () => {
+    set({ isLoading: true })
+
+    try {
+      const jobs = await apiClient.get<Job[]>('/jobs/my-jobs')
+      set({
+        jobs,
+        isLoading: false,
+        hasMore: false,
+        page: 0
+      })
+    } catch (error) {
+      console.error("Error loading my jobs:", error)
+      set({ isLoading: false, jobs: [] })
+    }
+  },
+
   getJobMatches: async (jobId: string) => {
     try {
       console.debug(`[JOB STORE] getJobMatches jobId=${jobId}`)
@@ -146,6 +165,89 @@ export const useJobStore = create<JobState>((set, get) => ({
     }
   },
 
+  getAIRanking: async (jobId: string) => {
+    try {
+      console.debug(`[JOB STORE] getAIRanking jobId=${jobId}`)
+      console.log(`[JOB STORE] Calling endpoint: /ai/match/job/${jobId}/candidates?limit=100`)
+
+      const data = await apiClient.get<{
+        jobId: string
+        jobTitle: string
+        totalCandidates: number
+        matches: Array<{
+          candidateId: string
+          candidateName: string
+          compatibilityScore: number
+          matchPercentage: number
+          rank: number
+          breakdown: {
+            skillsMatch: number
+            experienceMatch: number
+            educationMatch: number
+            semanticMatch: number
+            locationMatch?: number
+          }
+          matchedSkills: string[]
+          missingSkills: string[]
+          explanation: string
+          recommendations: string[]
+          matchQuality: string
+        }>
+        averageScore: number
+        topSkillsMatched: string[]
+      }>(`/ai/match/job/${jobId}/candidates?limit=100`)
+
+      console.log('[JOB STORE] Full data:', data)
+      console.log('[JOB STORE] Data type:', typeof data)
+      console.log('[JOB STORE] Data keys:', data ? Object.keys(data) : 'null/undefined')
+
+      // Type guard: check if data is valid
+      if (!data) {
+        throw new Error('No data received from AI service - Backend may not be running')
+      }
+
+      // Check if response has the expected structure
+      if (typeof data !== 'object' || !('matches' in data) || !Array.isArray(data.matches)) {
+        console.error('[JOB STORE] Invalid data structure:', data)
+        throw new Error(`Invalid response format: matches is missing or not an array. Received: ${JSON.stringify(data).substring(0, 200)}`)
+      }
+
+      console.debug(`[JOB STORE] getAIRanking received ${data.matches.length} AI-ranked matches`)
+
+      // Merge AI data with existing applicants
+      set((state) => ({
+        applicants: state.applicants.map(app => {
+          const aiMatch = data.matches.find(m => m.candidateId === app.userId)
+          if (aiMatch) {
+            return {
+              ...app,
+              score: aiMatch.compatibilityScore,
+              explanation: aiMatch.explanation,
+              matchedSkills: aiMatch.matchedSkills,
+              aiMatchData: {
+                compatibilityScore: aiMatch.compatibilityScore,
+                matchPercentage: aiMatch.matchPercentage,
+                rank: aiMatch.rank,
+                breakdown: aiMatch.breakdown,
+                missingSkills: aiMatch.missingSkills,
+                recommendations: aiMatch.recommendations,
+                matchQuality: aiMatch.matchQuality,
+              }
+            }
+          }
+          return app
+        }).sort((a, b) => (a.aiMatchData?.rank || 999) - (b.aiMatchData?.rank || 999))
+      }))
+    } catch (error) {
+      console.error("Error getting AI ranking:", error)
+      if (error instanceof Error) {
+        console.error("Error message:", error.message)
+        console.error("Error stack:", error.stack)
+      }
+      throw error
+    }
+  },
+
   applyToJob: async (jobId: string, message?: string) => {
     try {
       console.debug(`[JOB STORE] applyToJob jobId=${jobId}`)
@@ -170,8 +272,11 @@ export const useJobStore = create<JobState>((set, get) => ({
       const applications = await apiClient.get<JobApplication[]>('/jobs/my-applications')
       console.debug(`[JOB STORE] getMyApplications received ${applications.length} applications`)
       set({ myApplications: applications })
-    } catch (error) {
-      console.error("Error getting my applications:", error)
+    } catch (error: any) {
+      // Silenciar error 403 (usuario no tiene permisos o no es candidato)
+      if (error?.response?.status !== 403) {
+        console.error("Error loading user applications:", error)
+      }
       set({ myApplications: [] })
     }
   },

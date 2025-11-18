@@ -5,19 +5,23 @@ import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
 import { CliperModal } from "./cliper-modal"
 import type { Cliper } from "@/lib/types"
-import { Play, Clock, User, MoreHorizontal } from "lucide-react"
+import { Play, Clock, User } from "lucide-react"
 
 interface CliperCardProps {
   cliper: Cliper
+  showActions?: boolean // Show likes, comments, share buttons
 }
 
-export function CliperCard({ cliper }: CliperCardProps) {
+export function CliperCard({ cliper, showActions = true }: CliperCardProps) {
   const [showModal, setShowModal] = useState(false)
+
+  const handleOpenModal = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
+    setShowModal(true)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -49,9 +53,14 @@ export function CliperCard({ cliper }: CliperCardProps) {
 
   return (
     <>
-      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer">
+      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={(e) => {
+        // Only open modal if not clicking on action buttons
+        if (!(e.target as HTMLElement).closest('button')) {
+          handleOpenModal(e)
+        }
+      }}>
         {/* Video Container - Facebook/TikTok Style */}
-        <div className="relative aspect-video bg-muted overflow-hidden" onClick={() => setShowModal(true)}>
+        <div className="relative aspect-video bg-muted overflow-hidden">
           {cliper.thumbnailUrl ? (
             <img
               src={cliper.thumbnailUrl || "/placeholder.svg"}
@@ -98,7 +107,9 @@ export function CliperCard({ cliper }: CliperCardProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-semibold text-sm">Usuario</p>
+                <p className="font-semibold text-sm">
+                  {cliper.user ? `${cliper.user.firstName} ${cliper.user.lastName}` : "Usuario"}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(cliper.createdAt), {
                     addSuffix: true,
@@ -130,23 +141,27 @@ export function CliperCard({ cliper }: CliperCardProps) {
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                <span>👍 Me gusta</span>
-                <span>💬 Comentar</span>
-                <span>📤 Compartir</span>
+            {/* Actions - Read only counters */}
+            {showActions && (
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-1">
+                    <span>❤️</span>
+                    <span>{cliper.likesCount || 0}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <span>💬</span>
+                    <span>{cliper.commentsCount || 0}</span>
+                  </div>
+                </div>
               </div>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Cliper Modal */}
-      <CliperModal cliper={cliper} open={showModal} onOpenChange={setShowModal} />
+      <CliperModal cliper={cliper} open={showModal} onOpenChange={setShowModal} showActions={showActions} />
     </>
   )
 }

@@ -46,7 +46,7 @@ export default function ProfilePage() {
   if (isLoading || loadingCompany) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen">
           <div className="container mx-auto px-4 py-8">
             <div className="animate-pulse space-y-8">
               <div className="bg-card rounded-lg border p-8">
@@ -69,7 +69,7 @@ export default function ProfilePage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {user?.role === "COMPANY" ? (
             <>

@@ -25,7 +25,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-12">
         <div className="text-center space-y-6">

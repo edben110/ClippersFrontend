@@ -8,8 +8,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { useJobStore } from "@/store/job-store"
+import { SendTechnicalTestButton } from "@/components/jobs/send-technical-test-button"
+import { ViewTechnicalTestsButton } from "@/components/jobs/view-technical-tests-button"
 import type { JobApplication } from "@/lib/types"
-import { FiMail, FiUser, FiAward } from "react-icons/fi"
+import { FiMail, FiUser, FiAward, FiTrendingUp, FiTrendingDown, FiAlertCircle } from "react-icons/fi"
 
 interface ApplicantsListProps {
   jobId: string
@@ -65,8 +67,41 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
     }
   }
 
-  // Sort applicants by score (highest first)
-  const sortedApplicants = [...applicants].sort((a, b) => b.score - a.score)
+  // Sort applicants by AI rank if available, otherwise by score
+  const sortedApplicants = [...applicants].sort((a, b) => {
+    if (a.aiMatchData?.rank && b.aiMatchData?.rank) {
+      return a.aiMatchData.rank - b.aiMatchData.rank
+    }
+    return b.score - a.score
+  })
+
+  const getMatchQualityColor = (quality?: string) => {
+    switch (quality) {
+      case "excellent":
+        return "bg-success/10 text-success"
+      case "good":
+        return "bg-primary/10 text-primary"
+      case "medium":
+        return "bg-warning/10 text-warning"
+      default:
+        return "bg-muted text-muted-foreground"
+    }
+  }
+
+  const getMatchQualityText = (quality?: string) => {
+    switch (quality) {
+      case "excellent":
+        return "Excelente"
+      case "good":
+        return "Bueno"
+      case "medium":
+        return "Medio"
+      case "low":
+        return "Bajo"
+      default:
+        return "Sin evaluar"
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -103,11 +138,49 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
                 </div>
                 <div className="text-right space-y-1">
                   <div className="text-2xl font-bold text-primary">
-                    {Math.round(app.score * 100)}%
+                    {app.aiMatchData?.matchPercentage 
+                      ? `${Math.round(app.aiMatchData.matchPercentage)}%`
+                      : `${Math.round(app.score * 100)}%`
+                    }
                   </div>
                   <div className="text-xs text-muted-foreground">Compatibilidad</div>
+                  {app.aiMatchData?.matchQuality && (
+                    <Badge className={getMatchQualityColor(app.aiMatchData.matchQuality)}>
+                      {getMatchQualityText(app.aiMatchData.matchQuality)}
+                    </Badge>
+                  )}
                 </div>
               </div>
+
+              {/* AI Breakdown if available */}
+              {app.aiMatchData?.breakdown && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <div className="text-xs text-muted-foreground mb-1">Habilidades</div>
+                    <div className="text-lg font-bold text-primary">
+                      {Math.round(app.aiMatchData.breakdown.skillsMatch * 100)}%
+                    </div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <div className="text-xs text-muted-foreground mb-1">Experiencia</div>
+                    <div className="text-lg font-bold text-primary">
+                      {Math.round(app.aiMatchData.breakdown.experienceMatch * 100)}%
+                    </div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <div className="text-xs text-muted-foreground mb-1">Educación</div>
+                    <div className="text-lg font-bold text-primary">
+                      {Math.round(app.aiMatchData.breakdown.educationMatch * 100)}%
+                    </div>
+                  </div>
+                  <div className="p-2 bg-muted/50 rounded-lg text-center">
+                    <div className="text-xs text-muted-foreground mb-1">Semántico</div>
+                    <div className="text-lg font-bold text-primary">
+                      {Math.round(app.aiMatchData.breakdown.semanticMatch * 100)}%
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <Separator />
 
@@ -121,17 +194,88 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
               {/* Matched skills */}
               {app.matchedSkills && app.matchedSkills.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-sm font-medium">
+                  <div className="flex items-center space-x-2 text-sm font-medium text-success">
                     <FiAward className="h-4 w-4" />
                     <span>Habilidades coincidentes:</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {app.matchedSkills.map((skill, idx) => (
-                      <Badge key={idx} variant="secondary">
+                      <Badge key={idx} variant="secondary" className="bg-success/10 text-success">
                         {skill}
                       </Badge>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Missing skills (AI) */}
+              {app.aiMatchData?.missingSkills && app.aiMatchData.missingSkills.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 text-sm font-medium text-warning">
+                    <FiAlertCircle className="h-4 w-4" />
+                    <span>Habilidades faltantes:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {app.aiMatchData.missingSkills.map((skill, idx) => (
+                      <Badge key={idx} variant="outline" className="border-warning text-warning">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Recommendations */}
+              {app.aiMatchData?.recommendations && app.aiMatchData.recommendations.length > 0 && (
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+                  <div className="flex items-center space-x-2 text-sm font-medium text-primary">
+                    <FiTrendingUp className="h-4 w-4" />
+                    <span>Recomendaciones de IA:</span>
+                  </div>
+                  <ul className="space-y-1 text-sm">
+                    {app.aiMatchData.recommendations.map((rec, idx) => (
+                      <li key={idx} className="flex items-start space-x-2">
+                        <span className="text-primary mt-1">•</span>
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* AI Strengths */}
+              {app.aiMatchData?.strengths && app.aiMatchData.strengths.length > 0 && (
+                <div className="p-3 bg-success/5 border border-success/20 rounded-lg space-y-2">
+                  <div className="flex items-center space-x-2 text-sm font-medium text-success">
+                    <FiTrendingUp className="h-4 w-4" />
+                    <span>Fortalezas:</span>
+                  </div>
+                  <ul className="space-y-1 text-sm">
+                    {app.aiMatchData.strengths.map((strength, idx) => (
+                      <li key={idx} className="flex items-start space-x-2">
+                        <span className="text-success mt-1">✓</span>
+                        <span>{strength}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* AI Weaknesses */}
+              {app.aiMatchData?.weaknesses && app.aiMatchData.weaknesses.length > 0 && (
+                <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg space-y-2">
+                  <div className="flex items-center space-x-2 text-sm font-medium text-destructive">
+                    <FiTrendingDown className="h-4 w-4" />
+                    <span>Áreas de mejora:</span>
+                  </div>
+                  <ul className="space-y-1 text-sm">
+                    {app.aiMatchData.weaknesses.map((weakness, idx) => (
+                      <li key={idx} className="flex items-start space-x-2">
+                        <span className="text-destructive mt-1">!</span>
+                        <span>{weakness}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
@@ -177,7 +321,7 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
               <Separator />
 
               {/* Status and actions */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center space-x-3">
                   <Badge className={getStatusColor(app.status)}>
                     {getStatusText(app.status)}
@@ -191,26 +335,43 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
                   </span>
                 </div>
 
-                {app.status === "PENDING" && (
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => handleUpdateStatus(app.id, "ACCEPTED")}
-                      disabled={updatingId === app.id}
-                    >
-                      {updatingId === app.id ? "Actualizando..." : "Aceptar"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleUpdateStatus(app.id, "REJECTED")}
-                      disabled={updatingId === app.id}
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  {/* View Technical Tests Button */}
+                  <ViewTechnicalTestsButton
+                    jobId={jobId}
+                    candidateId={app.userId}
+                  />
+                  
+                  {/* Send Technical Test Button - Available for top candidates */}
+                  {(index < 5 || app.status === "ACCEPTED") && (
+                    <SendTechnicalTestButton
+                      jobId={jobId}
+                      candidateId={app.userId}
+                      candidateName={`${app.user?.firstName} ${app.user?.lastName}`}
+                    />
+                  )}
+                  
+                  {app.status === "PENDING" && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleUpdateStatus(app.id, "ACCEPTED")}
+                        disabled={updatingId === app.id}
+                      >
+                        {updatingId === app.id ? "Actualizando..." : "Aceptar"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleUpdateStatus(app.id, "REJECTED")}
+                        disabled={updatingId === app.id}
+                      >
+                        Rechazar
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>

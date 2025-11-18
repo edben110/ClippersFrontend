@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -142,6 +142,9 @@ export function JobModal({ job, open, onOpenChange }: JobModalProps) {
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">{job.title}</DialogTitle>
+          <DialogDescription>
+            {job.company?.name || "Empresa"} • {job.location || "Ubicación no especificada"}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid md:grid-cols-3 gap-6">

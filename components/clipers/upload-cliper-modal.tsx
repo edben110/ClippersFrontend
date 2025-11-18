@@ -128,7 +128,19 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
         handleClose()
       }, 2000)
     } catch (err: any) {
-      setError(err.response?.data?.message || "Error al subir el cliper")
+      const errorMessage = err.response?.data?.message || err.message || "Error al subir el cliper"
+      
+      // Mensajes de error más específicos
+      if (errorMessage.includes("servicio de procesamiento")) {
+        setError("El servicio de procesamiento de video no está disponible. Por favor, intenta más tarde.")
+      } else if (errorMessage.includes("duración") || errorMessage.includes("duration")) {
+        setError("El video debe durar entre 15 segundos y 2 minutos.")
+      } else if (errorMessage.includes("ya tienes un cliper")) {
+        setError("Ya tienes un cliper. Este será reemplazado por el nuevo.")
+      } else {
+        setError(errorMessage)
+      }
+      
       setIsUploading(false)
     }
   }
@@ -158,15 +170,15 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
   if (uploadComplete) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="upload-success-description">
           <div className="text-center space-y-4 py-8">
             <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
               <FiCheck className="h-8 w-8 text-success" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">¡Cliper subido exitosamente!</h3>
-              <p className="text-muted-foreground text-sm">
-                Tu cliper está siendo procesado. Recibirás una notificación cuando esté listo.
+              <h3 className="text-lg font-semibold">¡Cliper creado exitosamente!</h3>
+              <p id="upload-success-description" className="text-muted-foreground text-sm">
+                Tu cliper ha sido procesado y tu perfil ATS ha sido actualizado automáticamente.
               </p>
             </div>
           </div>
@@ -177,10 +189,13 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-3xl max-h-[95vh] overflow-y-auto p-4 sm:p-6" aria-describedby="upload-cliper-description">
         <DialogHeader>
-          <DialogTitle>Crear nuevo Cliper</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Crear nuevo Cliper</DialogTitle>
         </DialogHeader>
+        <p id="upload-cliper-description" className="sr-only">
+          Formulario para subir o grabar un nuevo video cliper
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -196,13 +211,15 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="upload" className="flex items-center gap-2">
-                <FiUpload className="w-4 h-4" />
-                Subir Archivo
+              <TabsTrigger value="upload" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <FiUpload className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">Subir Archivo</span>
+                <span className="xs:hidden">Subir</span>
               </TabsTrigger>
-              <TabsTrigger value="record" className="flex items-center gap-2">
-                <FiCamera className="w-4 h-4" />
-                Grabar Video
+              <TabsTrigger value="record" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <FiCamera className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">Grabar Video</span>
+                <span className="xs:hidden">Grabar</span>
               </TabsTrigger>
             </TabsList>
 
@@ -212,14 +229,14 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
                 <Label>Video *</Label>
                 {!file ? (
                   <div
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer"
+                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-8 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer"
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <FiUpload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Arrastra tu video aquí o haz clic para seleccionar</p>
+                    <FiUpload className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-2 sm:mb-4" />
+                    <div className="space-y-1 sm:space-y-2">
+                      <p className="text-xs sm:text-sm font-medium">Arrastra tu video aquí o haz clic para seleccionar</p>
                       <p className="text-xs text-muted-foreground">MP4, MOV, AVI hasta 100MB</p>
                     </div>
                     <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} className="hidden" disabled={isUploading} />
@@ -247,33 +264,14 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
               {/* Video Recorder */}
               <div className="space-y-2">
                 <Label>Grabar Video *</Label>
-                <VideoRecorder onVideoRecorded={handleVideoRecorded} maxDuration={60} />
-                {recordedVideoBlob && (
-                  <div className="border rounded-lg p-4 bg-muted/50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <FiVideo className="h-8 w-8 text-primary" />
-                        <div>
-                          <p className="font-medium text-sm">Video grabado</p>
-                          <p className="text-xs text-muted-foreground">{formatFileSize(recordedVideoBlob.size)}</p>
-                        </div>
-                      </div>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => {
-                        setRecordedVideoBlob(null)
-                        setFile(null)
-                      }} disabled={isUploading}>
-                        <FiX className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <VideoRecorder onVideoRecorded={handleVideoRecorded} maxDuration={120} />
               </div>
             </TabsContent>
           </Tabs>
 
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Título *</Label>
+            <Label htmlFor="title" className="text-sm sm:text-base">Título *</Label>
             <Input
               id="title"
               placeholder="Ej: Presentación como Desarrollador Frontend"
@@ -282,13 +280,14 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
               maxLength={100}
               disabled={isUploading}
               required
+              className="text-sm sm:text-base h-10 sm:h-11"
             />
             <p className="text-xs text-muted-foreground">{title.length}/100 caracteres</p>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="description" className="text-sm sm:text-base">Descripción</Label>
             <Textarea
               id="description"
               placeholder="Describe brevemente tu experiencia, habilidades y lo que buscas..."
@@ -296,7 +295,7 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
               onChange={(e) => setDescription(e.target.value)}
               maxLength={500}
               disabled={isUploading}
-              className="min-h-[100px]"
+              className="min-h-[80px] sm:min-h-[100px] text-sm sm:text-base"
             />
             <p className="text-xs text-muted-foreground">{description.length}/500 caracteres</p>
           </div>
@@ -313,11 +312,11 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
           )}
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isUploading}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isUploading} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={!file || !title.trim() || isUploading}>
+            <Button type="submit" disabled={!file || !title.trim() || isUploading} className="w-full sm:w-auto">
               {isUploading ? "Creando..." : "Crear Cliper"}
             </Button>
           </div>

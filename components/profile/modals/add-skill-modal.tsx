@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,6 +29,35 @@ export function AddSkillModal({ open, onOpenChange }: AddSkillModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validar que todos los campos estén llenos
+    if (!formData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "El nombre de la habilidad es requerido.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!formData.level) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar un nivel.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!formData.category) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar una categoría.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -62,6 +91,9 @@ export function AddSkillModal({ open, onOpenChange }: AddSkillModalProps) {
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>Agregar habilidad</DialogTitle>
+          <DialogDescription>
+            Agrega una nueva habilidad a tu perfil profesional
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +147,10 @@ export function AddSkillModal({ open, onOpenChange }: AddSkillModalProps) {
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.name.trim() || !formData.level || !formData.category}
+            >
               {isLoading ? "Guardando..." : "Agregar habilidad"}
             </Button>
           </div>

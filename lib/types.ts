@@ -3,6 +3,7 @@ export interface User {
   email: string
   firstName: string
   lastName: string
+  name?: string // For backward compatibility
   role: "CANDIDATE" | "COMPANY" | "ADMIN"
   profileImage?: string
   phone?: string
@@ -45,8 +46,19 @@ export interface Cliper {
   skills: string[]
   userId: string
   user?: User
+  likesCount: number
+  commentsCount: number
+  comments: CliperComment[]
   createdAt: string
   updatedAt: string
+}
+
+export interface CliperComment {
+  id: string
+  userId: string
+  userName: string
+  text: string
+  createdAt: string
 }
 
 export interface Job {
@@ -165,6 +177,29 @@ export interface JobApplication {
   status: "PENDING" | "ACCEPTED" | "REJECTED"
   applicationMessage?: string
   createdAt: string
+  // AI Matching data
+  aiMatchData?: AIMatchData
+}
+
+export interface AIMatchData {
+  compatibilityScore: number
+  matchPercentage: number
+  rank?: number
+  breakdown?: MatchBreakdown
+  missingSkills?: string[]
+  recommendations?: string[]
+  matchQuality?: string
+  strengths?: string[]
+  weaknesses?: string[]
+  detailedAnalysis?: Record<string, string>
+}
+
+export interface MatchBreakdown {
+  skillsMatch: number
+  experienceMatch: number
+  educationMatch: number
+  semanticMatch: number
+  locationMatch?: number
 }
 
 export interface AuthResponse {
@@ -187,4 +222,20 @@ export interface PaginatedResponse<T> {
   totalPages: number
   hasNext: boolean
   hasPrevious: boolean
+}
+
+export interface TechnicalTest {
+  id: string
+  jobId: string
+  candidateId: string
+  candidateName?: string
+  companyId: string
+  testMarkdown: string
+  status: "SENT" | "IN_PROGRESS" | "SUBMITTED" | "REVIEWED"
+  candidateResponse?: string
+  score?: number
+  feedback?: string
+  createdAt: string
+  submittedAt?: string
+  reviewedAt?: string
 }

@@ -45,11 +45,11 @@ export default function FeedPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8 max-w-[1600px]">
-          <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr_260px] gap-8">
-            {/* Left Sidebar */}
-            <aside className="space-y-6 lg:sticky lg:top-24 self-start">
+      <div className="min-h-screen">
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-[1600px]">
+          <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr_260px] gap-4 sm:gap-8">
+            {/* Left Sidebar - Hidden on mobile */}
+            <aside className="hidden lg:block space-y-6 lg:sticky lg:top-24 self-start">
               <div className="bg-card border rounded-md px-2 py-5 w-full">
                 <h2 className="sr-only">Explorar</h2>
                 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
@@ -94,7 +94,13 @@ export default function FeedPage() {
                   </div>
 
                   <div className="pt-2">
-                    <Button variant="outline" size="sm" className="w-full h-8 text-sm" onClick={handleRefresh} disabled={isLoading}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full h-8 text-sm border-white/10 text-[#ECECEC] hover:bg-white/5 hover:text-[#ECECEC] transition-all" 
+                      onClick={handleRefresh} 
+                      disabled={isLoading}
+                    >
                       <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
                       Refrescar
                     </Button>
@@ -104,16 +110,50 @@ export default function FeedPage() {
             </aside>
 
             {/* Main Content */}
-            <main className="w-full max-w-3xl mx-auto lg:mx-0">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Image src="/LogoClipers.png" alt="Clipers" width={40} height={40} className="h-10 w-10 rounded-lg" />
+            <main className="w-full max-w-2xl mx-auto">
+              {/* Header - Hidden on mobile */}
+              <div className="hidden sm:flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <Image src="/LogoClipers.png" alt="Clipers" width={72} height={64} className="h-16 w-[4.5rem] rounded-lg object-contain" priority />
                   <div>
                     <h1 className="text-3xl font-bold text-foreground">Feed</h1>
-                    <p className="text-muted-foreground">Descubre oportunidades y conecta con profesionales</p>
+                    <p className="text-base text-muted-foreground">Descubre oportunidades y conecta con profesionales</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Mobile Filters */}
+              <div className="lg:hidden mb-4 flex gap-2 overflow-x-auto pb-2">
+                <Select value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                  <SelectTrigger className="w-32 h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="foryou">Para ti</SelectItem>
+                    <SelectItem value="trending">Tendencias</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={selectedType} onValueChange={(v) => setSelectedType(v as any)}>
+                  <SelectTrigger className="w-32 h-9 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Todos</SelectItem>
+                    <SelectItem value="TEXT">Post</SelectItem>
+                    <SelectItem value="IMAGE">Imagen</SelectItem>
+                    <SelectItem value="VIDEO">Video</SelectItem>
+                    <SelectItem value="CLIPER">Clipers</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-9 px-3 text-xs flex-shrink-0" 
+                  onClick={handleRefresh} 
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
+                </Button>
               </div>
 
               {/* Highlights */}
@@ -138,12 +178,12 @@ export default function FeedPage() {
               )}
 
               {/* Create Post */}
-              <div className="mb-8">
+              <div className="mb-4 sm:mb-8">
                 <CreatePost />
               </div>
 
               {/* Posts Feed */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {displayPosts.length === 0 && !isLoading ? (
                   <div className="text-center py-12">
                     <div className="space-y-4">
@@ -163,7 +203,12 @@ export default function FeedPage() {
                 {/* Load More Button */}
                 {hasMore && displayPosts.length > 0 && (
                   <div className="text-center py-6">
-                    <Button variant="outline" onClick={handleLoadMore} disabled={isLoading}>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleLoadMore} 
+                      disabled={isLoading}
+                      className="border-white/10 text-[#ECECEC] hover:bg-white/5 hover:text-[#ECECEC] transition-all"
+                    >
                       {isLoading ? "Cargando..." : "Cargar más"}
                     </Button>
                   </div>

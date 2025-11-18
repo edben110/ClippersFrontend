@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -83,6 +83,9 @@ export function AddExperienceModal({ open, onOpenChange }: AddExperienceModalPro
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Agregar experiencia laboral</DialogTitle>
+          <DialogDescription>
+            Agrega tu experiencia profesional previa
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

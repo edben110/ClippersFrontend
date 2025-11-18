@@ -14,6 +14,9 @@ interface CliperState {
   getCliperStatus: (cliperId: string) => Promise<Cliper>
   pollCliperUntilDone: (cliperId: string, intervalMs?: number, timeoutMs?: number) => Promise<void>
   deleteCliper: (cliperId: string) => Promise<void>
+  toggleLike: (cliperId: string) => Promise<{ liked: boolean; likesCount: number }>
+  addComment: (cliperId: string, text: string) => Promise<Cliper>
+  deleteComment: (cliperId: string, commentId: string) => Promise<Cliper>
 }
 
 export const useCliperStore = create<CliperState>((set, get) => ({
@@ -34,6 +37,7 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 120000, // 2 minutos para videos grandes
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
@@ -42,15 +46,13 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         },
       })
 
-      set((state) => {
-        const exists = state.clipers.some((c) => c.id === response.id)
-        return {
-          clipers: exists ? state.clipers : [response, ...state.clipers],
-          uploadProgress: 0,
-        }
-      })
+      // Agregar el cliper solo una vez al inicio del array
+      set((state) => ({
+        clipers: [response, ...state.clipers],
+        uploadProgress: 0,
+      }))
 
-      // Poll status until processed, so the newly uploaded item updates automatically
+      // Poll status para actualizar el cliper existente (no agregar uno nuevo)
       get().pollCliperUntilDone(response.id).catch(() => {})
 
       return response.id
@@ -156,6 +158,60 @@ export const useCliperStore = create<CliperState>((set, get) => ({
       }))
     } catch (error) {
       console.error("Error deleting cliper:", error)
+      throw error
+    }
+  },
+
+  toggleLike: async (cliperId: string) => {
+    try {
+      console.log("🌐 Store: Calling API to toggle like for cliper:", cliperId)
+      const response = await apiClient.post<{ liked: boolean; likesCount: number }>(`/clipers/${cliperId}/like`)
+      console.log("🌐 Store: API response:", response)
+      
+      // Update cliper in store
+      set((state) => ({
+        clipers: state.clipers.map((c) => 
+          c.id === cliperId ? { ...c, likesCount: response.likesCount } : c
+        ),
+      }))
+
+      return response
+    } catch (error) {
+      console.error("❌ Store: Error toggling like:", error)
+      throw error
+    }
+  },
+
+  addComment: async (cliperId: string, text: string) => {
+    try {
+      console.log("🌐 Store: Calling API to add comment for cliper:", cliperId, "text:", text)
+      const cliper = await apiClient.post<Cliper>(`/clipers/${cliperId}/comments`, { text })
+      console.log("🌐 Store: API response:", cliper)
+      
+      // Update cliper in store
+      set((state) => ({
+        clipers: state.clipers.map((c) => (c.id === cliperId ? cliper : c)),
+      }))
+
+      return cliper
+    } catch (error) {
+      console.error("❌ Store: Error adding comment:", error)
+      throw error
+    }
+  },
+
+  deleteComment: async (cliperId: string, commentId: string) => {
+    try {
+      const cliper = await apiClient.delete<Cliper>(`/clipers/${cliperId}/comments/${commentId}`)
+      
+      // Update cliper in store
+      set((state) => ({
+        clipers: state.clipers.map((c) => (c.id === cliperId ? cliper : c)),
+      }))
+
+      return cliper
+    } catch (error) {
+      console.error("Error deleting comment:", error)
       throw error
     }
   },

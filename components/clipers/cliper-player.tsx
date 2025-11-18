@@ -14,7 +14,7 @@ type Props = {
 export function CliperPlayer({ cliper }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [playing, setPlaying] = useState(false)
-  const [muted, setMuted] = useState(true) // Start muted for autoplay
+  const [muted, setMuted] = useState(false) // Start unmuted
   const [volume, setVolume] = useState(0.9)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -45,7 +45,7 @@ export function CliperPlayer({ cliper }: Props) {
       try {
         await v.play()
         setPlaying(true)
-      } catch {}
+      } catch { }
     } else {
       v.pause()
       setPlaying(false)
@@ -83,8 +83,6 @@ export function CliperPlayer({ cliper }: Props) {
           poster={cliper.thumbnailUrl || undefined}
           preload="metadata"
           className="h-full w-full"
-          autoPlay
-          muted
           onClick={togglePlay}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
