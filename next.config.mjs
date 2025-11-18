@@ -15,12 +15,26 @@ const nextConfig = {
         port: '8080',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.coolify.app',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.clipers.pro',
+        pathname: '/uploads/**',
+      },
     ],
   },
   output: 'standalone',
   experimental: {
     outputFileTracingRoot: process.cwd(),
   },
+  // Optimizaciones para producción
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: true,
 }
 
 export default nextConfig

@@ -1,46 +1,21 @@
 {
-  "name": "Clipers Full Stack",
-  "description": "Full stack social network application with Next.js frontend and Spring Boot backend",
-  "type": "docker-compose",
-  "compose_file": "docker-compose.production.yml",
-  "services": {
-    "clipers-frontend": {
-      "port": 3000,
-      "healthcheck": {
-        "enabled": true,
-        "path": "/",
-        "interval": 30,
-        "timeout": 10,
-        "retries": 3
-      }
-    },
-    "clipers-backend": {
-      "port": 8080,
-      "healthcheck": {
-        "enabled": true,
-        "path": "/api/test/health",
-        "interval": 30,
-        "timeout": 10,
-        "retries": 3
-      }
-    }
+  "name": "Clipers Frontend",
+  "description": "Next.js Frontend for Clipers - Video CV Social Network",
+  "type": "dockerfile",
+  "dockerfile": "Dockerfile",
+  "port": 3000,
+  "healthcheck": {
+    "enabled": true,
+    "path": "/",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3,
+    "start_period": 40
   },
-  "environment": {
-    "NODE_ENV": "production",
-    "SPRING_PROFILES_ACTIVE": "docker",
-    "POSTGRES_DB": "clipers_db",
-    "POSTGRES_USER": "clipers_user",
-    "POSTGRES_PASSWORD": "clipers_password",
-    "JWT_SECRET": "mySecretKey123456789012345678901234567890123456789012345678901234567890",
-    "CORS_ALLOWED_ORIGINS": "https://your-domain.com"
-  },
-  "volumes": {
-    "postgres_data": "persistent",
-    "redis_data": "persistent",
-    "rabbitmq_data": "persistent"
-  },
+  "build_args": {},
   "resources": {
-    "memory": "2Gi",
-    "cpu": "1.5"
+    "memory": "512Mi",
+    "cpu": "0.5",
+    "memory_reservation": "256Mi"
   }
 }
