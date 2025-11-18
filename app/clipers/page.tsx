@@ -193,9 +193,9 @@ export default function ClipersPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                           <RemoteAvatar
-                            src={cliper.user?.profileImage || user?.profileImage}
-                            alt={cliper.user?.firstName || user?.firstName || "Usuario"}
-                            fallback={`${cliper.user?.firstName?.[0] || user?.firstName?.[0] || "U"}${cliper.user?.lastName?.[0] || user?.lastName?.[0] || ""}`}
+                            src={cliper.user?.profileImage || (cliper.userId === user?.id ? user?.profileImage : undefined)}
+                            alt={cliper.user?.firstName || (cliper.userId === user?.id ? user?.firstName : "Usuario") || "Usuario"}
+                            fallback={`${cliper.user?.firstName?.[0] || (cliper.userId === user?.id ? user?.firstName?.[0] : "U") || "U"}${cliper.user?.lastName?.[0] || (cliper.userId === user?.id ? user?.lastName?.[0] : "") || ""}`}
                             className="h-9 w-9 sm:h-11 sm:w-11 ring-2 ring-primary/20 flex-shrink-0"
                           />
                           <div className="min-w-0 flex-1">
