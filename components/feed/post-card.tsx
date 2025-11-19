@@ -35,6 +35,13 @@ export function PostCard({ post }: PostCardProps) {
   // Use comments directly from post prop (which comes from store)
   const comments = post.comments || []
 
+  // Load comments count on mount if not already loaded
+  useEffect(() => {
+    if (!post.comments || post.comments.length === 0) {
+      loadComments(post.id)
+    }
+  }, [post.id])
+
   // Auto-refresh comments every 10 seconds when comments section is open
   useEffect(() => {
     if (!showComments) return
