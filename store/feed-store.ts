@@ -132,6 +132,19 @@ export const useFeedStore = create<FeedState>((set, get) => ({
   loadComments: async (postId: string) => {
     try {
       const comments = await apiClient.get<Comment[]>(`/posts/${postId}/comments`)
+      
+      // Update the post with the loaded comments
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: comments,
+              }
+            : post,
+        ),
+      }))
+      
       return comments
     } catch (error) {
       console.error("Error loading comments:", error)
