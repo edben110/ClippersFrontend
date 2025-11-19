@@ -9,6 +9,8 @@
  * @param videoUrl - Original video URL
  * @param useStreaming - Whether to use streaming endpoint (default: true for large videos)
  * @returns Streaming-optimized URL
+ * 
+ * Note: Falls back to original URL if streaming is not available
  */
 export function getStreamingUrl(videoUrl: string | undefined, useStreaming: boolean = true): string | undefined {
   if (!videoUrl) return undefined;
@@ -30,7 +32,8 @@ export function getStreamingUrl(videoUrl: string | undefined, useStreaming: bool
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://backend.clipers.pro/api';
   const baseUrl = apiUrl.replace('/api', ''); // Remove /api suffix if present
   
-  return `${baseUrl}/api/stream/video/${filename}`;
+  // Try streaming endpoint first, but video player will fallback to original URL on error
+  return `${baseUrl}/api/stream/video/${encodeURIComponent(filename)}`;
 }
 
 /**

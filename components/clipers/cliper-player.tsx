@@ -75,21 +75,33 @@ export function CliperPlayer({ cliper }: Props) {
     }
   }
 
-  // Use streaming URL for better mobile performance
+  // Use streaming URL for better mobile performance, with fallback to original
   const streamingUrl = getStreamingUrl(cliper.videoUrl, true);
+  const [videoSrc, setVideoSrc] = useState(streamingUrl);
+  const [streamingFailed, setStreamingFailed] = useState(false);
+
+  // Fallback to original URL if streaming fails
+  const handleVideoError = () => {
+    if (!streamingFailed && cliper.videoUrl) {
+      console.warn("Streaming failed, falling back to original URL");
+      setVideoSrc(cliper.videoUrl);
+      setStreamingFailed(true);
+    }
+  };
 
   return (
     <div className="relative w-full h-full bg-black">
-      {streamingUrl ? (
+      {videoSrc ? (
         <video
           ref={videoRef}
-          src={streamingUrl}
+          src={videoSrc}
           poster={cliper.thumbnailUrl || undefined}
           preload="metadata"
           className="h-full w-full"
           onClick={togglePlay}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onError={handleVideoError}
           controls={false}
         />
       ) : (
