@@ -16,11 +16,12 @@ interface JobState {
   getJobMatches: (jobId: string) => Promise<void>
   getApplicants: (jobId: string) => Promise<void>
   rankApplicants: (jobId: string) => Promise<void>
-  getAIRanking: (jobId: string) => Promise<void>
+  getAIRanking: (jobId: string, forceRefresh?: boolean) => Promise<void>
   applyToJob: (jobId: string, message?: string) => Promise<JobApplication>
   getMyApplications: () => Promise<void>
   updateApplicationStatus: (applicationId: string, status: string) => Promise<void>
   getJobApplications: (jobId: string) => Promise<void>
+  loadSavedAIRanking: (jobId: string) => Promise<boolean>
   createJob: (jobData: CreateJobData) => Promise<void>
   updateJob: (jobId: string, jobData: Partial<CreateJobData>) => Promise<void>
   deleteJob: (jobId: string) => Promise<void>
@@ -165,8 +166,9 @@ export const useJobStore = create<JobState>((set, get) => ({
     }
   },
 
-  getAIRanking: async (jobId: string) => {
+  getAIRanking: async (jobId: string, forceRefresh: boolean = false) => {
     try {
+      // Use forceRefresh parameter to recalculate or load saved results
       const data = await apiClient.get<{
         jobId: string
         jobTitle: string
@@ -192,7 +194,7 @@ export const useJobStore = create<JobState>((set, get) => ({
         }>
         averageScore: number
         topSkillsMatched: string[]
-      }>(`/ai/match/job/${jobId}/candidates?limit=100`)
+      }>(`/ai/match/job/${jobId}/candidates?limit=100&forceRefresh=${forceRefresh}`)
 
       // Type guard: check if data is valid
       if (!data) {
@@ -291,9 +293,87 @@ export const useJobStore = create<JobState>((set, get) => ({
       const applications = await apiClient.get<JobApplication[]>(`/jobs/${jobId}/applications`)
       console.debug(`[JOB STORE] getJobApplications received ${applications.length} applications`)
       set({ applicants: applications })
+      
+      // Try to load saved AI ranking automatically
+      await get().loadSavedAIRanking(jobId)
     } catch (error) {
       console.error("Error getting job applications:", error)
       set({ applicants: [] })
+    }
+  },
+
+  loadSavedAIRanking: async (jobId: string) => {
+    try {
+      console.debug(`[JOB STORE] loadSavedAIRanking jobId=${jobId}`)
+      
+      // Try to get saved results
+      const data = await apiClient.get<{
+        jobId: string
+        jobTitle: string
+        totalCandidates: number
+        matches: Array<{
+          candidateId: string
+          candidateName: string
+          compatibilityScore: number
+          matchPercentage: number
+          rank: number
+          breakdown: {
+            skillsMatch: number
+            experienceMatch: number
+            educationMatch: number
+            semanticMatch: number
+            locationMatch?: number
+          }
+          matchedSkills: string[]
+          missingSkills: string[]
+          explanation: string
+          recommendations: string[]
+          matchQuality: string
+        }>
+        averageScore: number
+        topSkillsMatched: string[]
+      }>(`/ai/match/job/${jobId}/saved-results`)
+
+      if (data && data.matches && data.matches.length > 0) {
+        console.debug(`[JOB STORE] Loaded ${data.matches.length} saved AI rankings`)
+        
+        // Merge saved AI data with existing applicants
+        set((state) => ({
+          applicants: state.applicants.map(app => {
+            const aiMatch = data.matches.find(m => m.candidateId === app.userId)
+            if (aiMatch) {
+              return {
+                ...app,
+                score: aiMatch.compatibilityScore,
+                explanation: aiMatch.explanation,
+                matchedSkills: aiMatch.matchedSkills,
+                aiMatchData: {
+                  compatibilityScore: aiMatch.compatibilityScore,
+                  matchPercentage: aiMatch.matchPercentage,
+                  rank: aiMatch.rank,
+                  breakdown: aiMatch.breakdown,
+                  missingSkills: aiMatch.missingSkills,
+                  recommendations: aiMatch.recommendations,
+                  matchQuality: aiMatch.matchQuality,
+                }
+              }
+            }
+            return app
+          }).sort((a, b) => (a.aiMatchData?.rank || 999) - (b.aiMatchData?.rank || 999))
+        }))
+        
+        return true
+      }
+      
+      return false
+    } catch (error: any) {
+      // 204 No Content means no saved results exist yet
+      if (error?.response?.status === 204) {
+        console.debug(`[JOB STORE] No saved AI rankings found for job ${jobId}`)
+        return false
+      }
+      console.error("Error loading saved AI ranking:", error)
+      return false
     }
   },
 

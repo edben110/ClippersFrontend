@@ -26,6 +26,7 @@ export default function JobApplicantsPage() {
   const [loadingJob, setLoadingJob] = useState(true)
   const [loadingAI, setLoadingAI] = useState(false)
   const [aiRankingEnabled, setAiRankingEnabled] = useState(false)
+  const [hasSavedResults, setHasSavedResults] = useState(false)
 
   useEffect(() => {
     const loadJobAndApplicants = async () => {
@@ -36,6 +37,13 @@ export default function JobApplicantsPage() {
         
         if (user?.role === "COMPANY") {
           await getJobApplications(jobId)
+          
+          // Check if AI ranking was already applied (saved results loaded)
+          const hasAIData = applicants.some(app => app.aiMatchData)
+          if (hasAIData) {
+            setAiRankingEnabled(true)
+            setHasSavedResults(true)
+          }
         }
       } catch (error) {
         console.error("Error loading job:", error)
@@ -48,17 +56,29 @@ export default function JobApplicantsPage() {
       loadJobAndApplicants()
     }
   }, [jobId, user, getJobApplications])
+  
+  // Check for AI data when applicants change
+  useEffect(() => {
+    const hasAIData = applicants.some(app => app.aiMatchData)
+    if (hasAIData && !aiRankingEnabled) {
+      setAiRankingEnabled(true)
+      setHasSavedResults(true)
+    }
+  }, [applicants])
 
-  const handleAIRanking = async () => {
+  const handleAIRanking = async (forceRefresh: boolean = false) => {
     if (!jobId) return
     
     setLoadingAI(true)
     try {
-      await getAIRanking(jobId)
+      await getAIRanking(jobId, forceRefresh)
       setAiRankingEnabled(true)
+      setHasSavedResults(false) // New calculation
       toast({
         title: "✅ Ranking IA activado",
-        description: "Los candidatos han sido evaluados y ordenados por compatibilidad",
+        description: forceRefresh 
+          ? "Los candidatos han sido re-evaluados y ordenados por compatibilidad"
+          : "Los candidatos han sido evaluados y ordenados por compatibilidad",
         variant: "default",
       })
     } catch (error: any) {
@@ -123,29 +143,42 @@ export default function JobApplicantsPage() {
                       Gestiona los candidatos que han aplicado a esta oferta
                     </p>
                   </div>
-                  <Button
-                    onClick={handleAIRanking}
-                    disabled={loadingAI || applicants.length === 0}
-                    variant={aiRankingEnabled ? "default" : "outline"}
-                    className="min-w-[200px]"
-                  >
-                    {loadingAI ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                        Analizando con IA...
-                      </>
-                    ) : aiRankingEnabled ? (
-                      <>
-                        <FiAward className="mr-2 h-4 w-4" />
-                        Ranking IA Activo
-                      </>
-                    ) : (
-                      <>
-                        <FiBriefcase className="mr-2 h-4 w-4" />
-                        Activar Ranking IA
-                      </>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleAIRanking(false)}
+                      disabled={loadingAI || applicants.length === 0}
+                      variant={aiRankingEnabled ? "default" : "outline"}
+                      className="min-w-[200px]"
+                    >
+                      {loadingAI ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Analizando con IA...
+                        </>
+                      ) : aiRankingEnabled ? (
+                        <>
+                          <FiAward className="mr-2 h-4 w-4" />
+                          {hasSavedResults ? "Ranking IA (Guardado)" : "Ranking IA Activo"}
+                        </>
+                      ) : (
+                        <>
+                          <FiBriefcase className="mr-2 h-4 w-4" />
+                          Activar Ranking IA
+                        </>
+                      )}
+                    </Button>
+                    {aiRankingEnabled && (
+                      <Button
+                        onClick={() => handleAIRanking(true)}
+                        disabled={loadingAI}
+                        variant="outline"
+                        size="sm"
+                        title="Recalcular ranking con IA"
+                      >
+                        🔄
+                      </Button>
                     )}
-                  </Button>
+                  </div>
                 </div>
               </div>
             ) : (
