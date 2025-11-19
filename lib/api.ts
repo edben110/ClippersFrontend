@@ -5,10 +5,18 @@ class ApiClient {
   private axiosInstance: AxiosInstance
 
   private constructor() {
+    // Get API URL from environment variable
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    
+    if (!apiUrl) {
+      throw new Error("NEXT_PUBLIC_API_URL environment variable is not set")
+    }
+
     // Normalize baseURL to always include /api
-    const rawBase = process.env.NEXT_PUBLIC_API_URL || "https://backend.clipers.pro/api"
-    const trimmedBase = rawBase.replace(/\/+$/, "")
+    const trimmedBase = apiUrl.replace(/\/+$/, "")
     const normalizedBase = trimmedBase.endsWith("/api") ? trimmedBase : `${trimmedBase}/api`
+
+    console.log("API Client initialized with baseURL:", normalizedBase)
 
     this.axiosInstance = axios.create({
       baseURL: normalizedBase,
