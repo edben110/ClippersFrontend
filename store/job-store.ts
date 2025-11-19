@@ -132,9 +132,7 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   getJobMatches: async (jobId: string) => {
     try {
-      console.debug(`[JOB STORE] getJobMatches jobId=${jobId}`)
       const matches = await apiClient.get<JobMatch[]>(`/jobs/${jobId}/matches`)
-      console.debug(`[JOB STORE] getJobMatches received ${matches.length} matches`)
       set({ matches })
     } catch (error) {
       console.error("Error getting job matches:", error)
@@ -144,9 +142,7 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   getApplicants: async (jobId: string) => {
     try {
-      console.debug(`[JOB STORE] getApplicants jobId=${jobId}`)
       const applicants = await apiClient.get<JobApplication[]>(`/jobs/${jobId}/applications`)
-      console.debug(`[JOB STORE] getApplicants received ${applicants.length} applicants`)
       set({ applicants })
     } catch (error) {
       console.error("Error getting applicants:", error)
@@ -156,9 +152,7 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   rankApplicants: async (jobId: string) => {
     try {
-      console.debug(`[JOB STORE] rankApplicants jobId=${jobId}`)
       const ranked = await apiClient.get<JobMatch[]>(`/jobs/${jobId}/applicants/ranked`)
-      console.debug(`[JOB STORE] rankApplicants received ${ranked.length} ranked matches`)
       set({ matches: ranked })
     } catch (error) {
       console.error("Error ranking applicants:", error)
@@ -203,11 +197,8 @@ export const useJobStore = create<JobState>((set, get) => ({
 
       // Check if response has the expected structure
       if (typeof data !== 'object' || !('matches' in data) || !Array.isArray(data.matches)) {
-        console.error('[JOB STORE] Invalid data structure:', data)
         throw new Error(`Invalid response format: matches is missing or not an array. Received: ${JSON.stringify(data).substring(0, 200)}`)
       }
-
-      console.debug(`[JOB STORE] getAIRanking received ${data.matches.length} AI-ranked matches`)
 
       // Merge AI data with existing applicants
       set((state) => ({
@@ -245,9 +236,7 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   applyToJob: async (jobId: string, message?: string) => {
     try {
-      console.debug(`[JOB STORE] applyToJob jobId=${jobId}`)
       const application = await apiClient.post<JobApplication>(`/jobs/${jobId}/apply`, { message })
-      console.debug(`[JOB STORE] applyToJob completed jobId=${jobId}`)
 
       // Add the new application to myApplications
       set((state) => ({
@@ -263,9 +252,7 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   getMyApplications: async () => {
     try {
-      console.debug(`[JOB STORE] getMyApplications`)
       const applications = await apiClient.get<JobApplication[]>('/jobs/my-applications')
-      console.debug(`[JOB STORE] getMyApplications received ${applications.length} applications`)
       set({ myApplications: applications })
     } catch (error: any) {
       // Silenciar error 403 (usuario no tiene permisos o no es candidato)
@@ -278,9 +265,7 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   updateApplicationStatus: async (applicationId: string, status: string) => {
     try {
-      console.debug(`[JOB STORE] updateApplicationStatus applicationId=${applicationId} status=${status}`)
       await apiClient.put(`/jobs/applications/${applicationId}/status`, { status })
-      console.debug(`[JOB STORE] updateApplicationStatus completed`)
     } catch (error) {
       console.error("Error updating application status:", error)
       throw error
@@ -289,9 +274,7 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   getJobApplications: async (jobId: string) => {
     try {
-      console.debug(`[JOB STORE] getJobApplications jobId=${jobId}`)
       const applications = await apiClient.get<JobApplication[]>(`/jobs/${jobId}/applications`)
-      console.debug(`[JOB STORE] getJobApplications received ${applications.length} applications`)
       set({ applicants: applications })
       
       // Try to load saved AI ranking automatically
@@ -304,8 +287,6 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   loadSavedAIRanking: async (jobId: string) => {
     try {
-      console.debug(`[JOB STORE] loadSavedAIRanking jobId=${jobId}`)
-      
       // Try to get saved results
       const data = await apiClient.get<{
         jobId: string
@@ -335,8 +316,6 @@ export const useJobStore = create<JobState>((set, get) => ({
       }>(`/ai/match/job/${jobId}/saved-results`)
 
       if (data && data.matches && data.matches.length > 0) {
-        console.debug(`[JOB STORE] Loaded ${data.matches.length} saved AI rankings`)
-        
         // Merge saved AI data with existing applicants
         set((state) => ({
           applicants: state.applicants.map(app => {
@@ -369,7 +348,6 @@ export const useJobStore = create<JobState>((set, get) => ({
     } catch (error: any) {
       // 204 No Content means no saved results exist yet
       if (error?.response?.status === 204) {
-        console.debug(`[JOB STORE] No saved AI rankings found for job ${jobId}`)
         return false
       }
       console.error("Error loading saved AI ranking:", error)

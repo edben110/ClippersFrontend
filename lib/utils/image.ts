@@ -14,6 +14,21 @@ export function getImageUrl(imagePath: string | null | undefined): string {
   }
 
   // Construir URL del backend
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:8080"
+  // La API URL ya incluye /api, así que la usamos directamente
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api"
+  
+  // Si imagePath ya empieza con /api, usar solo el baseUrl sin /api
+  if (imagePath.startsWith("/api/")) {
+    const baseUrl = apiUrl.replace("/api", "")
+    return `${baseUrl}${imagePath}`
+  }
+  
+  // Si imagePath empieza con /uploads, agregar /api antes
+  if (imagePath.startsWith("/uploads")) {
+    return `${apiUrl}${imagePath}`
+  }
+  
+  // Para otros casos, usar la URL completa
+  const baseUrl = apiUrl.replace("/api", "")
   return `${baseUrl}${imagePath}`
 }

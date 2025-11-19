@@ -16,7 +16,9 @@ class ApiClient {
     const trimmedBase = apiUrl.replace(/\/+$/, "")
     const normalizedBase = trimmedBase.endsWith("/api") ? trimmedBase : `${trimmedBase}/api`
 
-    console.log("API Client initialized with baseURL:", normalizedBase)
+    if (process.env.NODE_ENV === "development") {
+      console.log("API Client initialized with baseURL:", normalizedBase)
+    }
 
     this.axiosInstance = axios.create({
       baseURL: normalizedBase,
