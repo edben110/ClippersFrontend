@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Fullscreen, Pause, Play, Volume2, VolumeX } from "lucide-react"
 import type { Cliper } from "@/lib/types"
+import { getStreamingUrl } from "@/lib/video-utils"
 
 type Props = {
   cliper: Cliper
@@ -74,12 +75,15 @@ export function CliperPlayer({ cliper }: Props) {
     }
   }
 
+  // Use streaming URL for better mobile performance
+  const streamingUrl = getStreamingUrl(cliper.videoUrl, true);
+
   return (
     <div className="relative w-full h-full bg-black">
-      {cliper.videoUrl ? (
+      {streamingUrl ? (
         <video
           ref={videoRef}
-          src={cliper.videoUrl}
+          src={streamingUrl}
           poster={cliper.thumbnailUrl || undefined}
           preload="metadata"
           className="h-full w-full"
