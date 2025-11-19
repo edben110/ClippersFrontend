@@ -26,6 +26,7 @@ export default function ClipersPage() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [cliperToDelete, setCliperToDelete] = useState<string | null>(null)
+  const [userCache, setUserCache] = useState<Record<string, any>>({})
   const { toast } = useToast()
   const router = useRouter()
   const { user } = useAuthStore()
@@ -34,6 +35,56 @@ export default function ClipersPage() {
     loadClipers(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Cargar información de usuarios de los comentarios
+  useEffect(() => {
+    const loadCommentUsers = async () => {
+      const userIds = new Set<string>()
+      
+      // Recopilar todos los userIds de los comentarios
+      clipers.forEach(cliper => {
+        cliper.comments?.forEach(comment => {
+          if (comment.userId) {
+            userIds.add(comment.userId)
+          }
+        })
+      })
+
+      // Cargar información de usuarios que no están en caché
+      const usersToLoad = Array.from(userIds).filter(id => !userCache[id])
+      
+      if (usersToLoad.length === 0) return
+
+      const newUsers: Record<string, any> = {}
+      
+      await Promise.all(
+        usersToLoad.map(async (userId) => {
+          try {
+            const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            })
+            if (response.ok) {
+              const userData = await response.json()
+              newUsers[userId] = userData
+            }
+          } catch (error) {
+            console.error(`Error loading user ${userId}:`, error)
+          }
+        })
+      )
+
+      if (Object.keys(newUsers).length > 0) {
+        setUserCache(prev => ({ ...prev, ...newUsers }))
+      }
+    }
+
+    if (clipers.length > 0) {
+      loadCommentUsers()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clipers])
 
   // Cerrar menú al hacer click fuera
   useEffect(() => {
@@ -143,7 +194,7 @@ export default function ClipersPage() {
               </p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              <Button variant="outline" size="sm" onClick={() => window.location.reload()} disabled={isLoading}>
+              <Button variant="outline" size="sm" onClick={() => loadClipers(true)} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline ml-2">Refrescar</span>
               </Button>
@@ -284,7 +335,7 @@ export default function ClipersPage() {
                                   handleShare(cliper)
                                   setOpenMenuId(null)
                                 }}
-                                className="w-full text-left px-4 py-3 text-sm hover:bg-muted/30 flex items-center text-foreground transition-all rounded-t-xl"
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-muted/30 flex items-center text-foreground transition-all rounded-t-xl cursor-pointer"
                               >
                                 <Share2 className="h-4 w-4 mr-2" />
                                 Compartir
@@ -297,7 +348,7 @@ export default function ClipersPage() {
                                   setShowDeleteDialog(true)
                                   setOpenMenuId(null)
                                 }}
-                                className="w-full text-left px-4 py-3 text-sm hover:bg-destructive/10 flex items-center text-destructive transition-all rounded-b-xl"
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-destructive/10 flex items-center text-destructive transition-all rounded-b-xl cursor-pointer"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Eliminar
@@ -315,34 +366,52 @@ export default function ClipersPage() {
                       {/* Lista de comentarios */}
                       {cliper.comments && cliper.comments.length > 0 ? (
                         <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4 max-h-48 sm:max-h-60 overflow-y-auto">
-                          {cliper.comments.map((comment: any) => (
-                            <div key={comment.id} className="flex items-start gap-2 sm:gap-3">
-                              <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
-                                <AvatarImage src={comment.user?.profileImage || "/placeholder.svg"} />
-                                <AvatarFallback className="text-[10px] sm:text-xs">
-                                  {comment.user?.firstName?.[0]}{comment.user?.lastName?.[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <div className="bg-muted/30 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 relative group">
-                                  <p className="font-semibold text-xs sm:text-sm text-foreground truncate">
-                                    {comment.user?.firstName} {comment.user?.lastName}
-                                  </p>
-                                  <p className="text-xs sm:text-sm text-muted-foreground break-words">{comment.text}</p>
-                                  {user && user.id === comment.userId && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleDeleteComment(cliper.id, comment.id)}
-                                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                      <Trash2 className="h-3 w-3 text-destructive" />
-                                    </Button>
-                                  )}
+                          {cliper.comments.map((comment: any) => {
+                            // Obtener información del usuario desde el caché o usar userName
+                            const commentUser = userCache[comment.userId]
+                            const commentUserName = commentUser 
+                              ? `${commentUser.firstName} ${commentUser.lastName}`
+                              : comment.userName || "Usuario"
+                            
+                            // Generar iniciales
+                            const initials = commentUser
+                              ? `${commentUser.firstName?.[0] || ""}${commentUser.lastName?.[0] || ""}`
+                              : commentUserName
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")
+                                .slice(0, 2)
+                                .toUpperCase()
+                            
+                            return (
+                              <div key={comment.id} className="flex items-start gap-2 sm:gap-3">
+                                <RemoteAvatar
+                                  src={commentUser?.profileImage}
+                                  alt={commentUserName}
+                                  fallback={initials}
+                                  className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="bg-muted/30 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 relative group">
+                                    <p className="font-semibold text-xs sm:text-sm text-foreground truncate">
+                                      {commentUserName}
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-muted-foreground break-words">{comment.text}</p>
+                                    {user && user.id === comment.userId && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteComment(cliper.id, comment.id)}
+                                        className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <Trash2 className="h-3 w-3 text-destructive" />
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          })}
                         </div>
                       ) : (
                         <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">Sé el primero en comentar.</p>
@@ -350,12 +419,12 @@ export default function ClipersPage() {
 
                       {/* Input para nuevo comentario */}
                       <div className="flex gap-1.5 sm:gap-2">
-                        <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0">
-                          <AvatarImage src={user?.profileImage || "/placeholder.svg"} />
-                          <AvatarFallback className="text-[10px] sm:text-xs">
-                            {user?.firstName?.[0]}{user?.lastName?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
+                        <RemoteAvatar
+                          src={user?.profileImage}
+                          alt={user ? `${user.firstName} ${user.lastName}` : "Usuario"}
+                          fallback={user ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}` : "U"}
+                          className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0"
+                        />
                         <div className="flex-1 flex gap-1.5 sm:gap-2 min-w-0">
                           <input
                             className="flex-1 bg-muted/30 border border-border rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all min-w-0"

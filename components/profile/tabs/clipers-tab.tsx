@@ -17,8 +17,12 @@ interface ClipersTabProps {
 
 export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
   const [showUploadModal, setShowUploadModal] = useState(false)
-  const { clipers, loadClipers, loadMyClipers } = useCliperStore()
-  const { jobs, loadMyJobs } = useJobStore()
+  // Subscribe to clipers array to trigger re-render when it changes
+  const clipers = useCliperStore((state) => state.clipers)
+  const loadClipers = useCliperStore((state) => state.loadClipers)
+  const loadMyClipers = useCliperStore((state) => state.loadMyClipers)
+  const jobs = useJobStore((state) => state.jobs)
+  const loadMyJobs = useJobStore((state) => state.loadMyJobs)
 
   const isCompany = profile && "name" in profile
 
@@ -28,16 +32,15 @@ export function ClipersTab({ profile, isOwnProfile }: ClipersTabProps) {
       loadMyJobs()
     } else if (profile && profile.id) {
       // Load clipers for this specific user profile
-      // For now, if it's own profile use loadMyClipers, otherwise we need to fetch by userId
       if (isOwnProfile) {
         loadMyClipers()
       } else {
-        // TODO: Need to implement loadClipersByUserId
-        // For now, load all and filter client-side
+        // Load all and filter client-side for other users
         loadClipers(true)
       }
     }
-  }, [isCompany, isOwnProfile, profile, loadMyClipers, loadClipers, loadMyJobs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCompany, isOwnProfile, profile?.id])
 
   if (isCompany) {
     // Show company jobs

@@ -12,7 +12,12 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import Image from "next/image"
 
 export default function FeedPage() {
-  const { posts, isLoading, hasMore, loadFeed } = useFeedStore()
+  // Subscribe to posts array to trigger re-render when it changes
+  const posts = useFeedStore((state) => state.posts)
+  const isLoading = useFeedStore((state) => state.isLoading)
+  const hasMore = useFeedStore((state) => state.hasMore)
+  const loadFeed = useFeedStore((state) => state.loadFeed)
+  
   const [activeTab, setActiveTab] = useState<"foryou" | "trending">("foryou")
   const [selectedType, setSelectedType] = useState<"ALL" | "TEXT" | "IMAGE" | "VIDEO" | "CLIPER">("ALL")
   const [selectedRole, setSelectedRole] = useState<"ALL" | "CANDIDATE" | "COMPANY">("ALL")

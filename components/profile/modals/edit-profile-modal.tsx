@@ -21,7 +21,7 @@ interface EditProfileModalProps {
 
 export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) {
   const { profile, updateProfile, uploadUserAvatar, deleteUserAvatar, loadProfile } = useProfileStore()
-  const { user } = useAuthStore()
+  const { user, updateUser } = useAuthStore()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const isCompany = user?.role === "COMPANY"
@@ -141,8 +141,10 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
         })
       } else {
         // Subir imagen primero si hay una seleccionada
+        let newProfileImage = (profile as User)?.profileImage
         if (avatarFile) {
-          await uploadUserAvatar(avatarFile)
+          const uploadedProfile = await uploadUserAvatar(avatarFile)
+          newProfileImage = uploadedProfile.profileImage
         }
 
         // Luego actualizar los demás datos del perfil
@@ -151,6 +153,15 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
           lastName: formData.lastName,
           phone: formData.phone,
           address: formData.address,
+        })
+
+        // Actualizar el auth store para que se reflejen los cambios en toda la app
+        updateUser({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          address: formData.address,
+          profileImage: newProfileImage,
         })
 
         // Recargar el perfil para asegurar que los datos estén actualizados

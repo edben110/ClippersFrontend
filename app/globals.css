@@ -143,11 +143,29 @@
   }
   
   body {
-    @apply text-foreground font-sans antialiased;
-    background: #F5F6FA;
+    @apply text-foreground font-sans antialiased bg-background;
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+  }
+
+  /* Cursor pointer para elementos clickeables */
+  button,
+  a,
+  [role="button"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [disabled] {
+    cursor: not-allowed;
   }
   
   html {

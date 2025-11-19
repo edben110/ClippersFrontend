@@ -96,7 +96,7 @@ export function CreatePost() {
                 placeholder="¿Qué está pasando en tu carrera profesional?"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="min-h-[80px] sm:min-h-[100px] resize-none border border-border bg-card text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary hover:bg-accent/50 transition-all text-sm sm:text-base"
+                className="min-h-[80px] sm:min-h-[100px] resize-none border border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-border focus:bg-background transition-all text-sm sm:text-base"
                 maxLength={500}
               />
 

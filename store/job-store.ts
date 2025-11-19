@@ -167,9 +167,6 @@ export const useJobStore = create<JobState>((set, get) => ({
 
   getAIRanking: async (jobId: string) => {
     try {
-      console.debug(`[JOB STORE] getAIRanking jobId=${jobId}`)
-      console.log(`[JOB STORE] Calling endpoint: /ai/match/job/${jobId}/candidates?limit=100`)
-
       const data = await apiClient.get<{
         jobId: string
         jobTitle: string
@@ -196,10 +193,6 @@ export const useJobStore = create<JobState>((set, get) => ({
         averageScore: number
         topSkillsMatched: string[]
       }>(`/ai/match/job/${jobId}/candidates?limit=100`)
-
-      console.log('[JOB STORE] Full data:', data)
-      console.log('[JOB STORE] Data type:', typeof data)
-      console.log('[JOB STORE] Data keys:', data ? Object.keys(data) : 'null/undefined')
 
       // Type guard: check if data is valid
       if (!data) {

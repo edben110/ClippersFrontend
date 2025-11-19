@@ -26,12 +26,25 @@ export function PostCard({ post }: PostCardProps) {
   const [showComments, setShowComments] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(post.likes || 0)
-  const [comments, setComments] = useState(post.comments || [])
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
   const [showMenu, setShowMenu] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { likePost, loadComments, deletePost, updatePost } = useFeedStore()
+  
+  // Use comments directly from post prop (which comes from store)
+  const comments = post.comments || []
+
+  // Auto-refresh comments every 10 seconds when comments section is open
+  useEffect(() => {
+    if (!showComments) return
+
+    const interval = setInterval(async () => {
+      await loadComments(post.id)
+    }, 10000) // 10 seconds
+
+    return () => clearInterval(interval)
+  }, [showComments, post.id, loadComments])
 
   const handleLike = async () => {
     try {
@@ -51,17 +64,15 @@ export function PostCard({ post }: PostCardProps) {
 
   const handleToggleComments = async () => {
     if (!showComments) {
-      // Load comments when opening
-      const loadedComments = await loadComments(post.id)
-      setComments(loadedComments)
+      // Load comments when opening (updates store)
+      await loadComments(post.id)
     }
     setShowComments(!showComments)
   }
 
   const handleCommentAdded = async () => {
-    // Reload comments after adding a new one
-    const loadedComments = await loadComments(post.id)
-    setComments(loadedComments)
+    // Comments are already updated in store by addComment
+    // No need to reload
   }
 
   const handleDeletePost = async () => {
@@ -130,7 +141,7 @@ export function PostCard({ post }: PostCardProps) {
         {/* Post Header */}
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-            <button onClick={handleProfileClick} className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity min-w-0 flex-1">
+            <button onClick={handleProfileClick} className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity min-w-0 flex-1 cursor-pointer">
               <RemoteAvatar
                 className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
                 src={post.user?.profileImage}

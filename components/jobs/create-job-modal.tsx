@@ -41,9 +41,18 @@ export function CreateJobModal({ open, onOpenChange }: CreateJobModalProps) {
   }
 
   const addRequirement = () => {
-    if (newRequirement.trim() && !requirements.includes(newRequirement.trim())) {
-      setRequirements([...requirements, newRequirement.trim()])
+    const trimmed = newRequirement.trim()
+    // Only allow letters, numbers, spaces, and basic punctuation (.,-)
+    const validPattern = /^[a-zA-Z0-9\s.,\-áéíóúÁÉÍÓÚñÑüÜ]+$/
+    
+    if (trimmed && !requirements.includes(trimmed)) {
+      if (!validPattern.test(trimmed)) {
+        setError("Los requisitos solo pueden contener letras, números, espacios y puntuación básica (.,-)") 
+        return
+      }
+      setRequirements([...requirements, trimmed])
       setNewRequirement("")
+      setError("")
     }
   }
 
@@ -52,9 +61,18 @@ export function CreateJobModal({ open, onOpenChange }: CreateJobModalProps) {
   }
 
   const addSkill = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()])
+    const trimmed = newSkill.trim()
+    // Only allow letters, numbers, spaces, and basic punctuation (.,-)
+    const validPattern = /^[a-zA-Z0-9\s.,\-áéíóúÁÉÍÓÚñÑüÜ]+$/
+    
+    if (trimmed && !skills.includes(trimmed)) {
+      if (!validPattern.test(trimmed)) {
+        setError("Las habilidades solo pueden contener letras, números, espacios y puntuación básica (.,-)") 
+        return
+      }
+      setSkills([...skills, trimmed])
       setNewSkill("")
+      setError("")
     }
   }
 

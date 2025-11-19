@@ -104,7 +104,7 @@ export function Navbar() {
               {isAuthenticated ? (
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <button className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <button className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
                       <RemoteAvatar
                         src={user?.profileImage}
                         alt={user?.firstName || "Usuario"}

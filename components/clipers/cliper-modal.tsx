@@ -6,13 +6,13 @@ import { es } from "date-fns/locale"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import { Input } from "@/components/ui/input"
 import { useCliperStore } from "@/store/cliper-store"
 import { useAuthStore } from "@/store/auth-store"
 import type { Cliper } from "@/lib/types"
-import { FiPlay, FiUser, FiClock, FiTag, FiHeart, FiMessageCircle, FiSend, FiTrash2 } from "react-icons/fi"
+import { FiPlay, FiClock, FiTag, FiHeart, FiMessageCircle, FiSend, FiTrash2 } from "react-icons/fi"
 
 interface CliperModalProps {
   cliper: Cliper
@@ -26,6 +26,7 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
   const [commentText, setCommentText] = useState("")
   const [isLiked, setIsLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
+  const [userCache, setUserCache] = useState<Record<string, any>>({})
   const { getCliperStatus, toggleLike, addComment, deleteComment } = useCliperStore()
   const { user } = useAuthStore()
 
@@ -51,6 +52,52 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
       return () => clearInterval(interval)
     }
   }, [open, cliper.id, cliper.status, getCliperStatus])
+
+  // Cargar información de usuarios de los comentarios
+  useEffect(() => {
+    const loadCommentUsers = async () => {
+      const userIds = new Set<string>()
+      
+      currentCliper.comments?.forEach(comment => {
+        if (comment.userId) {
+          userIds.add(comment.userId)
+        }
+      })
+
+      const usersToLoad = Array.from(userIds).filter(id => !userCache[id])
+      
+      if (usersToLoad.length === 0) return
+
+      const newUsers: Record<string, any> = {}
+      
+      await Promise.all(
+        usersToLoad.map(async (userId) => {
+          try {
+            const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            })
+            if (response.ok) {
+              const userData = await response.json()
+              newUsers[userId] = userData
+            }
+          } catch (error) {
+            console.error(`Error loading user ${userId}:`, error)
+          }
+        })
+      )
+
+      if (Object.keys(newUsers).length > 0) {
+        setUserCache(prev => ({ ...prev, ...newUsers }))
+      }
+    }
+
+    if (open && currentCliper.comments && currentCliper.comments.length > 0) {
+      loadCommentUsers()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, currentCliper.comments])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -162,12 +209,12 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
           <div className="space-y-6">
             {/* Header - Creator Info */}
             <div className="flex items-center space-x-3">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback>
-                  <FiUser className="h-6 w-6" />
-                </AvatarFallback>
-              </Avatar>
+              <RemoteAvatar
+                src={currentCliper.user?.profileImage}
+                alt={currentCliper.user ? `${currentCliper.user.firstName} ${currentCliper.user.lastName}` : "Usuario"}
+                fallback={currentCliper.user ? `${currentCliper.user.firstName?.[0] || ""}${currentCliper.user.lastName?.[0] || ""}` : "U"}
+                className="h-12 w-12"
+              />
               <div className="flex-1">
                 <p className="font-semibold">
                   {currentCliper.user ? `${currentCliper.user.firstName} ${currentCliper.user.lastName}` : "Usuario"}
@@ -204,11 +251,12 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
                 {/* Add Comment */}
                 {user && (
                   <div className="flex gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        <FiUser className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <RemoteAvatar
+                      src={user.profileImage}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      fallback={`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`}
+                      className="h-8 w-8"
+                    />
                     <div className="flex-1 flex gap-2">
                       <Input
                         placeholder="Comentar..."
@@ -281,36 +329,55 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
                 <h3 className="font-semibold">Comentarios</h3>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {currentCliper.comments && currentCliper.comments.length > 0 ? (
-                    currentCliper.comments.map((comment: any) => (
-                      <div key={comment.id} className="flex gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            <FiUser className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 bg-muted/50 rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="font-semibold text-sm">{comment.userName}</p>
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
-                              </p>
-                              {user && user.id === comment.userId && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteComment(comment.id)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <FiTrash2 className="h-3 w-3" />
-                                </Button>
-                              )}
+                    currentCliper.comments.map((comment: any) => {
+                      // Obtener información del usuario desde el caché o usar userName
+                      const commentUser = userCache[comment.userId]
+                      const commentUserName = commentUser 
+                        ? `${commentUser.firstName} ${commentUser.lastName}`
+                        : comment.userName || "Usuario"
+                      
+                      // Generar iniciales
+                      const initials = commentUser
+                        ? `${commentUser.firstName?.[0] || ""}${commentUser.lastName?.[0] || ""}`
+                        : commentUserName
+                          .split(" ")
+                          .map((n: string) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()
+                      
+                      return (
+                        <div key={comment.id} className="flex gap-2">
+                          <RemoteAvatar
+                            src={commentUser?.profileImage}
+                            alt={commentUserName}
+                            fallback={initials}
+                            className="h-8 w-8"
+                          />
+                          <div className="flex-1 bg-muted/50 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-semibold text-sm">{commentUserName}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
+                                </p>
+                                {user && user.id === comment.userId && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <FiTrash2 className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
+                            <p className="text-sm">{comment.text}</p>
                           </div>
-                          <p className="text-sm">{comment.text}</p>
                         </div>
-                      </div>
-                    ))
+                      )
+                    })
                   ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">
                       Sé el primero en comentar.
