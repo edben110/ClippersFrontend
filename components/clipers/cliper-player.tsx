@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Fullscreen, Pause, Play, Volume2, VolumeX } from "lucide-react"
 import type { Cliper } from "@/lib/types"
-import { getStreamingUrl } from "@/lib/video-utils"
 
 type Props = {
   cliper: Cliper
@@ -75,19 +74,8 @@ export function CliperPlayer({ cliper }: Props) {
     }
   }
 
-  // Use streaming URL for better mobile performance, with fallback to original
-  const streamingUrl = getStreamingUrl(cliper.videoUrl, true);
-  const [videoSrc, setVideoSrc] = useState(streamingUrl);
-  const [streamingFailed, setStreamingFailed] = useState(false);
-
-  // Fallback to original URL if streaming fails
-  const handleVideoError = () => {
-    if (!streamingFailed && cliper.videoUrl) {
-      console.warn("Streaming failed, falling back to original URL");
-      setVideoSrc(cliper.videoUrl);
-      setStreamingFailed(true);
-    }
-  };
+  // Use direct video URL (streaming disabled to reduce server load)
+  const videoSrc = cliper.videoUrl;
 
   return (
     <div className="relative w-full h-full bg-black">
@@ -96,13 +84,13 @@ export function CliperPlayer({ cliper }: Props) {
           ref={videoRef}
           src={videoSrc}
           poster={cliper.thumbnailUrl || undefined}
-          preload="metadata"
+          preload="none"
           className="h-full w-full"
           onClick={togglePlay}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
-          onError={handleVideoError}
           controls={false}
+          playsInline
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">

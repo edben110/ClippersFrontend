@@ -35,6 +35,17 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
+  
+  // Optimizaciones adicionales
+  swcMinify: true,
+  reactStrictMode: true,
+  
+  // Reducir tamaño del bundle
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
 }
 
 export default nextConfig
