@@ -63,7 +63,6 @@ export function JobCard({ job }: JobCardProps) {
       const application = await applyToJob(job.id)
       toast({ title: "Aplicación enviada", description: "Tu aplicación ha sido enviada correctamente." })
     } catch (error: any) {
-      console.error("Error applying to job:", error)
       const errorMessage = error.response?.data?.message || error.message || "Error al aplicar al trabajo"
       toast({ title: "Error", description: errorMessage, variant: "destructive" })
     } finally {
@@ -111,9 +110,6 @@ export function JobCard({ job }: JobCardProps) {
 
   const isCompany = user?.role === "COMPANY"
   const isOwnJob = job.company?.userId === user?.id
-
-  // Debug
-  console.log('JobCard Debug:', { isCompany, isOwnJob, userId: user?.id, companyUserId: job.company?.userId })
 
   const handleDelete = async () => {
     setIsDeleting(true)

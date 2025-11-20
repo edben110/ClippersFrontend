@@ -31,7 +31,7 @@ export function ViewTechnicalTestsButton({ jobId, candidateId }: ViewTechnicalTe
             const response = await apiClient.get<TechnicalTest[]>(`/jobs/${jobId}/technical-tests/candidate/${candidateId}`)
             setTests(response)
         } catch (error) {
-            console.error("Error fetching tests:", error)
+            // Error silenciado
         } finally {
             setLoading(false)
         }

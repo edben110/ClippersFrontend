@@ -161,7 +161,6 @@ export function TechnicalTestModal({
       parsed[currentQuestionId] = currentAnswer.trim()
     }
     
-    console.log('Parsed answers:', parsed) // Debug
     return parsed
   }
   

@@ -129,7 +129,6 @@ export function EditJobModal({ job, open, onOpenChange, onJobUpdated }: EditJobM
       onJobUpdated?.()
       onOpenChange(false)
     } catch (error: any) {
-      console.error("Error updating job:", error)
       setError(error.response?.data?.message || "Error al actualizar el empleo")
     } finally {
       setIsSubmitting(false)
