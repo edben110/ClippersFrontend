@@ -61,7 +61,6 @@ export function JobModal({ job, open, onOpenChange }: JobModalProps) {
       })
       onOpenChange(false)
     } catch (error: any) {
-      console.error("Error applying to job:", error)
       throw error
     }
   }
@@ -77,7 +76,6 @@ export function JobModal({ job, open, onOpenChange }: JobModalProps) {
         variant: "default",
       })
     } catch (error) {
-      console.error("Error fetching candidates:", error)
       toast({ title: "Error", description: "No se pudieron cargar los candidatos.", variant: "destructive" })
     } finally {
       setIsFetchingCandidates(false)
@@ -94,7 +92,6 @@ export function JobModal({ job, open, onOpenChange }: JobModalProps) {
         variant: "default",
       })
     } catch (error) {
-      console.error("Error updating status:", error)
       toast({ title: "Error", description: "No se pudo actualizar el estado.", variant: "destructive" })
     }
   }

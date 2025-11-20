@@ -230,9 +230,13 @@ export interface TechnicalTest {
   candidateId: string
   candidateName?: string
   companyId: string
+  companyName?: string // Nombre de la empresa
+  jobTitle?: string // Título del puesto
   testMarkdown: string
+  testJson?: string // Formato estructurado JSON
   status: "SENT" | "IN_PROGRESS" | "SUBMITTED" | "REVIEWED"
   candidateResponse?: string
+  candidateAnswersJson?: string // Respuestas estructuradas
   score?: number
   feedback?: string
   createdAt: string

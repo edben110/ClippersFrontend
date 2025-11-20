@@ -46,7 +46,7 @@ export default function JobApplicantsPage() {
           }
         }
       } catch (error) {
-        console.error("Error loading job:", error)
+        // Error silenciado
       } finally {
         setLoadingJob(false)
       }
@@ -82,7 +82,7 @@ export default function JobApplicantsPage() {
         variant: "default",
       })
     } catch (error: any) {
-      console.error("Error getting AI ranking:", error)
+      // Error manejado por el toast
       const errorMessage = error?.response?.data?.message || error?.message || "Error al conectar con el servicio de IA"
       toast({
         title: "❌ Error al activar ranking IA",

@@ -34,7 +34,6 @@ export function ApplicantsList({ jobId, applicants }: ApplicantsListProps) {
         variant: "default",
       })
     } catch (error) {
-      console.error("Error updating status:", error)
       toast({
         title: "Error",
         description: "No se pudo actualizar el estado.",
