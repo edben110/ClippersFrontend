@@ -37,7 +37,7 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        timeout: 120000, // 2 minutos para videos grandes
+        timeout: 120000, // 2 minutes for large videos
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
@@ -46,19 +46,18 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         },
       })
 
-      // Agregar el cliper solo una vez al inicio del array
+      // Add cliper to beginning of array (dynamic update)
       set((state) => ({
         clipers: [response, ...state.clipers],
         uploadProgress: 0,
       }))
 
-      // Poll status para actualizar el cliper existente (no agregar uno nuevo)
+      // Poll status to update existing cliper (not add a new one)
       get().pollCliperUntilDone(response.id).catch(() => {})
 
       return response.id
     } catch (error) {
       set({ uploadProgress: 0 })
-      console.error("Error uploading cliper:", error)
       throw error
     }
   },
@@ -88,7 +87,6 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         }
       })
     } catch (error) {
-      console.error("Error loading clipers:", error)
       set({ isLoading: false })
       throw error
     }
@@ -100,12 +98,11 @@ export const useCliperStore = create<CliperState>((set, get) => ({
     try {
       const clipers = await apiClient.get<Cliper[]>("/clipers/my")
 
-      set((state) => ({
+      set({
         clipers: clipers,
         isLoading: false,
-      }))
+      })
     } catch (error) {
-      console.error("Error loading my clipers:", error)
       set({ isLoading: false })
       throw error
     }
@@ -122,7 +119,6 @@ export const useCliperStore = create<CliperState>((set, get) => ({
 
       return cliper
     } catch (error) {
-      console.error("Error getting cliper status:", error)
       throw error
     }
   },
@@ -157,16 +153,13 @@ export const useCliperStore = create<CliperState>((set, get) => ({
         clipers: state.clipers.filter((c) => c.id !== cliperId),
       }))
     } catch (error) {
-      console.error("Error deleting cliper:", error)
       throw error
     }
   },
 
   toggleLike: async (cliperId: string) => {
     try {
-      console.log("🌐 Store: Calling API to toggle like for cliper:", cliperId)
       const response = await apiClient.post<{ liked: boolean; likesCount: number }>(`/clipers/${cliperId}/like`)
-      console.log("🌐 Store: API response:", response)
       
       // Update cliper in store
       set((state) => ({
@@ -177,16 +170,13 @@ export const useCliperStore = create<CliperState>((set, get) => ({
 
       return response
     } catch (error) {
-      console.error("❌ Store: Error toggling like:", error)
       throw error
     }
   },
 
   addComment: async (cliperId: string, text: string) => {
     try {
-      console.log("🌐 Store: Calling API to add comment for cliper:", cliperId, "text:", text)
       const cliper = await apiClient.post<Cliper>(`/clipers/${cliperId}/comments`, { text })
-      console.log("🌐 Store: API response:", cliper)
       
       // Update cliper in store
       set((state) => ({
@@ -195,7 +185,6 @@ export const useCliperStore = create<CliperState>((set, get) => ({
 
       return cliper
     } catch (error) {
-      console.error("❌ Store: Error adding comment:", error)
       throw error
     }
   },
@@ -211,7 +200,6 @@ export const useCliperStore = create<CliperState>((set, get) => ({
 
       return cliper
     } catch (error) {
-      console.error("Error deleting comment:", error)
       throw error
     }
   },

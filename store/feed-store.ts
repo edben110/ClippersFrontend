@@ -26,16 +26,27 @@ export const useFeedStore = create<FeedState>((set, get) => ({
 
   createPost: async (content: string, type: "TEXT" | "IMAGE" | "VIDEO" = "TEXT", imageUrl?: string) => {
     try {
-      await apiClient.post<Post>("/posts", {
+      const newPost = await apiClient.post<Post>("/posts", {
         content,
         type: type.toLowerCase(),
         imageUrl,
       })
 
-      // Reload feed to get complete user data from backend
-      await get().loadFeed(true)
+      // Ensure the post has user data by fetching it if missing
+      if (!newPost.user) {
+        try {
+          const userData = await apiClient.get<any>("/auth/me")
+          newPost.user = userData
+        } catch (e) {
+          // If we can't get user data, continue anyway
+        }
+      }
+
+      // Add new post to the beginning of the feed (dynamic update)
+      set((state) => ({
+        posts: [newPost, ...state.posts],
+      }))
     } catch (error) {
-      console.error("Error creating post:", error)
       throw error
     }
   },
@@ -93,6 +104,16 @@ export const useFeedStore = create<FeedState>((set, get) => ({
         content,
       })
 
+      // Ensure comment has user data
+      if (!comment.user) {
+        try {
+          const userData = await apiClient.get<any>("/auth/me")
+          comment.user = userData
+        } catch (e) {
+          // Continue anyway
+        }
+      }
+
       set((state) => ({
         posts: state.posts.map((post) =>
           post.id === postId
@@ -104,7 +125,6 @@ export const useFeedStore = create<FeedState>((set, get) => ({
         ),
       }))
     } catch (error) {
-      console.error("Error adding comment:", error)
       throw error
     }
   },
@@ -112,6 +132,19 @@ export const useFeedStore = create<FeedState>((set, get) => ({
   loadComments: async (postId: string) => {
     try {
       const comments = await apiClient.get<Comment[]>(`/posts/${postId}/comments`)
+      
+      // Update the post with the loaded comments
+      set((state) => ({
+        posts: state.posts.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: comments,
+              }
+            : post,
+        ),
+      }))
+      
       return comments
     } catch (error) {
       console.error("Error loading comments:", error)

@@ -5,10 +5,20 @@ class ApiClient {
   private axiosInstance: AxiosInstance
 
   private constructor() {
+    // Get API URL from environment variable
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    
+    if (!apiUrl) {
+      throw new Error("NEXT_PUBLIC_API_URL environment variable is not set")
+    }
+
     // Normalize baseURL to always include /api
-    const rawBase = process.env.NEXT_PUBLIC_API_URL || "https://backend.clipers.pro/api"
-    const trimmedBase = rawBase.replace(/\/+$/, "")
+    const trimmedBase = apiUrl.replace(/\/+$/, "")
     const normalizedBase = trimmedBase.endsWith("/api") ? trimmedBase : `${trimmedBase}/api`
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("API Client initialized with baseURL:", normalizedBase)
+    }
 
     this.axiosInstance = axios.create({
       baseURL: normalizedBase,
@@ -36,10 +46,6 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
-        // Debug: log outbound request (no sensitive bodies)
-        const method = (config.method || 'GET').toUpperCase()
-        const url = `${this.axiosInstance.defaults.baseURL}${config.url}`
-        console.debug(`[API] ${method} ${url}`)
         return config
       },
       (error) => Promise.reject(error),
@@ -48,11 +54,6 @@ class ApiClient {
     // Response interceptor for token refresh
     this.axiosInstance.interceptors.response.use(
       (response) => {
-        // Debug: log inbound response
-        const req = response.config
-        const method = (req.method || 'GET').toUpperCase()
-        const url = `${this.axiosInstance.defaults.baseURL}${req.url}`
-        console.debug(`[API] ${method} ${url} -> ${response.status}`)
         return response
       },
       async (error) => {
@@ -79,13 +80,6 @@ class ApiClient {
             window.location.href = "/auth/login"
           }
         }
-
-        // Debug: log error responses succinctly
-        const status = error.response?.status
-        const req = error.config
-        const method = (req?.method || 'GET').toUpperCase()
-        const url = req?.url ? `${this.axiosInstance.defaults.baseURL}${req.url}` : 'unknown-url'
-        console.error(`[API] ERROR ${method} ${url} -> ${status || 'no-status'}`, error.response?.data || error.message)
 
         return Promise.reject(error)
       },

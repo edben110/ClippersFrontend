@@ -7,11 +7,11 @@ import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import { useAuthStore } from "@/store/auth-store"
 import { useFeedStore } from "@/store/feed-store"
 import type { Comment } from "@/lib/types"
-import { Send, Edit2, Trash2, X, Check } from "lucide-react"
+import { Send, X, Check } from "lucide-react"
 
 interface CommentSectionProps {
   postId: string
@@ -94,13 +94,12 @@ export function CommentSection({ postId, comments, postOwnerId, onCommentAdded }
         <div className="space-y-3 max-h-60 overflow-y-auto">
           {comments.map((comment) => (
             <div key={comment.id} className="flex items-start space-x-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={comment.user?.profileImage || "/placeholder.svg"} alt={comment.user?.firstName} />
-                <AvatarFallback className="text-xs">
-                  {comment.user?.firstName?.[0]}
-                  {comment.user?.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
+              <RemoteAvatar
+                src={comment.user?.profileImage}
+                alt={comment.user ? `${comment.user.firstName} ${comment.user.lastName}` : "Usuario"}
+                fallback={`${comment.user?.firstName?.[0] || ""}${comment.user?.lastName?.[0] || ""}`}
+                className="h-8 w-8"
+              />
               <div className="flex-1 space-y-1">
                 {editingCommentId === comment.id ? (
                   <div className="flex items-center space-x-2">
@@ -170,13 +169,12 @@ export function CommentSection({ postId, comments, postOwnerId, onCommentAdded }
 
       {/* Add Comment Form */}
       <form onSubmit={handleSubmit} className="flex items-center space-x-3">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={user?.profileImage || "/placeholder.svg"} alt={user?.firstName} />
-          <AvatarFallback className="text-xs">
-            {user?.firstName?.[0]}
-            {user?.lastName?.[0]}
-          </AvatarFallback>
-        </Avatar>
+        <RemoteAvatar
+          src={user?.profileImage}
+          alt={user ? `${user.firstName} ${user.lastName}` : "Usuario"}
+          fallback={`${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`}
+          className="h-8 w-8"
+        />
         <div className="flex-1 flex items-center space-x-2">
           <Input
             placeholder="Escribe un comentario..."

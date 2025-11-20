@@ -5,10 +5,10 @@ import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { RemoteAvatar } from "@/components/ui/remote-avatar"
 import { CliperModal } from "./cliper-modal"
 import type { Cliper } from "@/lib/types"
-import { Play, Clock, User } from "lucide-react"
+import { Play, Clock } from "lucide-react"
 
 interface CliperCardProps {
   cliper: Cliper
@@ -100,12 +100,12 @@ export function CliperCard({ cliper, showActions = true }: CliperCardProps) {
           <div className="space-y-3">
             {/* Header - User Info */}
             <div className="flex items-center space-x-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback>
-                  <User className="h-5 w-5" />
-                </AvatarFallback>
-              </Avatar>
+              <RemoteAvatar
+                src={cliper.user?.profileImage}
+                alt={cliper.user ? `${cliper.user.firstName} ${cliper.user.lastName}` : "Usuario"}
+                fallback={cliper.user ? `${cliper.user.firstName?.[0] || ""}${cliper.user.lastName?.[0] || ""}` : "U"}
+                className="h-10 w-10"
+              />
               <div className="flex-1">
                 <p className="font-semibold text-sm">
                   {cliper.user ? `${cliper.user.firstName} ${cliper.user.lastName}` : "Usuario"}

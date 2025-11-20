@@ -74,19 +74,23 @@ export function CliperPlayer({ cliper }: Props) {
     }
   }
 
+  // Use direct video URL (streaming disabled to reduce server load)
+  const videoSrc = cliper.videoUrl;
+
   return (
     <div className="relative w-full h-full bg-black">
-      {cliper.videoUrl ? (
+      {videoSrc ? (
         <video
           ref={videoRef}
-          src={cliper.videoUrl}
+          src={videoSrc}
           poster={cliper.thumbnailUrl || undefined}
-          preload="metadata"
+          preload="none"
           className="h-full w-full"
           onClick={togglePlay}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           controls={false}
+          playsInline
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">

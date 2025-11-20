@@ -11,6 +11,7 @@ import { CreateJobModal } from "@/components/jobs/create-job-modal"
 import { JobModal } from "@/components/jobs/job-modal"
 import { useJobStore } from "@/store/job-store"
 import { useAuthStore } from "@/store/auth-store"
+import { useRecentSearches } from "@/hooks/use-recent-searches"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FiPlus, FiSearch, FiBriefcase, FiRefreshCw } from "react-icons/fi"
@@ -19,6 +20,7 @@ import type { Job } from "@/lib/types"
 export default function JobsPage() {
   const { jobs, isLoading, hasMore, searchJobs, loadMyJobs, filters } = useJobStore()
   const { user } = useAuthStore()
+  const { addSearch, recentSearches } = useRecentSearches(10, "job-searches")
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
@@ -76,6 +78,8 @@ export default function JobsPage() {
     }
     
     if (searchQuery.trim()) {
+      // Save search to recent searches (Stack data structure)
+      addSearch(searchQuery.trim())
       searchJobs(searchQuery.trim(), filters, true)
     } else {
       searchJobs("", filters, true)

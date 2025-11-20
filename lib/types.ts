@@ -239,3 +239,49 @@ export interface TechnicalTest {
   submittedAt?: string
   reviewedAt?: string
 }
+
+// Technical Test Types
+export interface TechnicalTest {
+  id: string
+  jobId: string
+  job?: Job
+  title: string
+  description: string
+  questions: TechnicalTestQuestion[]
+  timeLimit?: number // in minutes
+  passingScore?: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TechnicalTestQuestion {
+  id: string
+  question: string
+  type: "MULTIPLE_CHOICE" | "SHORT_ANSWER" | "LONG_ANSWER" | "CODE"
+  options?: string[] // For multiple choice
+  correctAnswer?: string // For validation (backend only)
+  points: number
+  order: number
+}
+
+export interface TechnicalTestSubmission {
+  id: string
+  testId: string
+  test?: TechnicalTest
+  userId: string
+  user?: User
+  answers: TechnicalTestAnswer[]
+  score?: number
+  status: "IN_PROGRESS" | "SUBMITTED" | "GRADED"
+  startedAt: string
+  submittedAt?: string
+  gradedAt?: string
+}
+
+export interface TechnicalTestAnswer {
+  questionId: string
+  answer: string | string[] // String for text, array for multiple selections
+  isCorrect?: boolean // Set by backend after grading
+  points?: number // Points awarded
+}
