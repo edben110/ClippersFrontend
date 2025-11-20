@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -39,7 +38,6 @@ export function EditJobModal({ job, open, onOpenChange, onJobUpdated }: EditJobM
   const [error, setError] = useState("")
   const { toast } = useToast()
 
-  // Cargar datos del empleo cuando se abre el modal
   useEffect(() => {
     if (open && job) {
       setFormData({
@@ -135,12 +133,21 @@ export function EditJobModal({ job, open, onOpenChange, onJobUpdated }: EditJobM
     }
   }
 
+  const jobTypes = [
+    { value: "FULL_TIME", label: "Tiempo completo" },
+    { value: "PART_TIME", label: "Medio tiempo" },
+    { value: "CONTRACT", label: "Contrato" },
+    { value: "INTERNSHIP", label: "Prácticas" },
+  ]
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Empleo</DialogTitle>
-          <DialogDescription>Actualiza la información del empleo</DialogDescription>
+          <DialogTitle>Editar empleo</DialogTitle>
+          <DialogDescription>
+            Actualiza la información del empleo
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -150,156 +157,148 @@ export function EditJobModal({ job, open, onOpenChange, onJobUpdated }: EditJobM
             </Alert>
           )}
 
-          {/* Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Título del empleo *</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
-              placeholder="Ej: Desarrollador Full Stack Senior"
-              required
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2 space-y-2">
+              <Label htmlFor="title">Título del puesto *</Label>
+              <Input
+                id="title"
+                placeholder="Ej: Desarrollador Frontend Senior"
+                value={formData.title}
+                onChange={(e) => handleInputChange("title", e.target.value)}
+                required
+              />
+            </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Descripción *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Describe el puesto, responsabilidades y lo que ofreces..."
-              rows={5}
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Ubicación *</Label>
+              <Input
+                id="location"
+                placeholder="Ciudad, País"
+                value={formData.location}
+                onChange={(e) => handleInputChange("location", e.target.value)}
+                required
+              />
+            </div>
 
-          {/* Location */}
-          <div className="space-y-2">
-            <Label htmlFor="location">Ubicación *</Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => handleInputChange("location", e.target.value)}
-              placeholder="Ej: Ciudad de México, Remoto, Híbrido"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label>Tipo de empleo *</Label>
+              <Select value={formData.type} onValueChange={(value: any) => handleInputChange("type", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Type */}
-          <div className="space-y-2">
-            <Label htmlFor="type">Tipo de empleo *</Label>
-            <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="FULL_TIME">Tiempo completo</SelectItem>
-                <SelectItem value="PART_TIME">Medio tiempo</SelectItem>
-                <SelectItem value="CONTRACT">Contrato</SelectItem>
-                <SelectItem value="INTERNSHIP">Prácticas</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Salary Range */}
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="salaryMin">Salario mínimo</Label>
               <Input
                 id="salaryMin"
                 type="number"
+                placeholder="50000"
                 value={formData.salaryMin}
                 onChange={(e) => handleInputChange("salaryMin", e.target.value)}
-                placeholder="Ej: 30000"
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="salaryMax">Salario máximo</Label>
               <Input
                 id="salaryMax"
                 type="number"
+                placeholder="80000"
                 value={formData.salaryMax}
                 onChange={(e) => handleInputChange("salaryMax", e.target.value)}
-                placeholder="Ej: 50000"
               />
             </div>
           </div>
 
-          {/* Requirements */}
           <div className="space-y-2">
+            <Label htmlFor="description">Descripción del puesto *</Label>
+            <Textarea
+              id="description"
+              placeholder="Describe las responsabilidades, el ambiente de trabajo y lo que buscas en un candidato..."
+              value={formData.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
+              className="min-h-[120px]"
+              required
+            />
+          </div>
+
+          <div className="space-y-3">
             <Label>Requisitos</Label>
-            <div className="flex gap-2">
+            <div className="flex space-x-2">
               <Input
+                placeholder="Agregar requisito..."
                 value={newRequirement}
                 onChange={(e) => setNewRequirement(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())}
-                placeholder="Agrega un requisito"
               />
-              <Button type="button" onClick={addRequirement} size="icon">
+              <Button type="button" onClick={addRequirement} size="sm">
                 <FiPlus className="h-4 w-4" />
               </Button>
             </div>
             {requirements.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-2">
                 {requirements.map((req, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-1 bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm"
-                  >
+                  <div key={index} className="flex items-center space-x-1 bg-muted px-3 py-1 rounded-full text-sm">
                     <span>{req}</span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => removeRequirement(index)}
-                      className="hover:text-destructive"
+                      className="h-4 w-4 p-0 hover:bg-transparent"
                     >
                       <FiX className="h-3 w-3" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Skills */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Habilidades requeridas</Label>
-            <div className="flex gap-2">
+            <div className="flex space-x-2">
               <Input
+                placeholder="Agregar habilidad..."
                 value={newSkill}
                 onChange={(e) => setNewSkill(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-                placeholder="Agrega una habilidad"
               />
-              <Button type="button" onClick={addSkill} size="icon">
+              <Button type="button" onClick={addSkill} size="sm">
                 <FiPlus className="h-4 w-4" />
               </Button>
             </div>
             {skills.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-2">
                 {skills.map((skill, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
-                  >
+                  <div key={index} className="flex items-center space-x-1 bg-primary/10 px-3 py-1 rounded-full text-sm">
                     <span>{skill}</span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => removeSkill(index)}
-                      className="hover:text-destructive"
+                      className="h-4 w-4 p-0 hover:bg-transparent"
                     >
                       <FiX className="h-3 w-3" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end space-x-3">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
