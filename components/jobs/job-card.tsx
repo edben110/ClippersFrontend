@@ -10,11 +10,23 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { JobModal } from "./job-modal"
+import { EditJobModal } from "./edit-job-modal"
 import { useAuthStore } from "@/store/auth-store"
 import { useJobStore } from "@/store/job-store"
 import { useToast } from "@/hooks/use-toast"
+import { apiClient } from "@/lib/api"
 import type { Job } from "@/lib/types"
-import { FiMapPin, FiClock, FiDollarSign, FiBriefcase, FiUsers } from "react-icons/fi"
+import { FiMapPin, FiClock, FiDollarSign, FiBriefcase, FiUsers, FiEdit2, FiTrash2 } from "react-icons/fi"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface JobCardProps {
   job: Job
@@ -22,9 +34,12 @@ interface JobCardProps {
 
 export function JobCard({ job }: JobCardProps) {
   const [showModal, setShowModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const { user } = useAuthStore()
-  const { applyToJob, hasAppliedToJob, getApplicationForJob } = useJobStore()
+  const { applyToJob, hasAppliedToJob, getApplicationForJob, loadMyJobs } = useJobStore()
   const { toast } = useToast()
 
   const hasApplied = hasAppliedToJob(job.id)
@@ -97,15 +112,39 @@ export function JobCard({ job }: JobCardProps) {
   const isCompany = user?.role === "COMPANY"
   const isOwnJob = job.company?.userId === user?.id
 
+  // Debug
+  console.log('JobCard Debug:', { isCompany, isOwnJob, userId: user?.id, companyUserId: job.company?.userId })
+
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await apiClient.delete(`/jobs/${job.id}`)
+      toast({
+        title: "✅ Empleo eliminado",
+        description: "El empleo ha sido eliminado correctamente"
+      })
+      loadMyJobs() // Recargar la lista de empleos
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el empleo",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
+
   return (
     <>
       <Card
-        className="group hover:shadow-lg transition-all duration-300 cursor-pointer"
+        className="group hover:shadow-lg transition-all duration-300 cursor-pointer relative overflow-visible"
         onClick={() => setShowModal(true)}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 flex-1">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={job.company?.logo || "/placeholder.svg"} alt={job.company?.name} />
                 <AvatarFallback>
@@ -122,7 +161,37 @@ export function JobCard({ job }: JobCardProps) {
                 </p>
               </div>
             </div>
-            <Badge className={`text-xs ${getTypeColor(job.type)}`}>{getTypeText(job.type)}</Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={`text-xs ${getTypeColor(job.type)}`}>{getTypeText(job.type)}</Badge>
+              {isCompany && isOwnJob && (
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 hover:bg-blue-500/10 hover:text-blue-600"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowEditModal(true)
+                    }}
+                    title="Editar empleo"
+                  >
+                    <FiEdit2 className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 hover:bg-destructive/10 hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowDeleteDialog(true)
+                    }}
+                    title="Eliminar empleo"
+                  >
+                    <FiTrash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
 
@@ -222,6 +291,44 @@ export function JobCard({ job }: JobCardProps) {
 
       {/* Job Modal */}
       <JobModal job={job} open={showModal} onOpenChange={setShowModal} />
+
+      {/* Edit Job Modal */}
+      {isCompany && isOwnJob && (
+        <EditJobModal 
+          job={job} 
+          open={showEditModal} 
+          onOpenChange={setShowEditModal}
+          onJobUpdated={() => {
+            loadMyJobs()
+            setShowEditModal(false)
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el empleo "{job.title}" y todas sus aplicaciones asociadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.stopPropagation()
+                handleDelete()
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
