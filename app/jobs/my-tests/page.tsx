@@ -106,10 +106,27 @@ export default function MyTestsPage() {
                       <FiFileText className="h-6 w-6 text-primary" />
                       {getStatusBadge(test.status, test.score)}
                     </div>
-                    <h3 className="font-semibold mb-2">Prueba Técnica</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    
+                    {/* Company Name */}
+                    {test.companyName && (
+                      <div className="mb-3">
+                        <p className="text-xs text-muted-foreground mb-1">Empresa</p>
+                        <p className="font-bold text-lg text-foreground">{test.companyName}</p>
+                      </div>
+                    )}
+                    
+                    {/* Job Title */}
+                    {test.jobTitle && (
+                      <div className="mb-3">
+                        <p className="text-xs text-muted-foreground mb-0.5">Posición</p>
+                        <p className="text-sm font-medium text-foreground">{test.jobTitle}</p>
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-muted-foreground mb-4">
                       Enviada {formatDistanceToNow(new Date(test.createdAt), { addSuffix: true, locale: es })}
                     </p>
+                    
                     <Button variant="outline" size="sm" className="w-full">
                       {test.status === "SENT" || test.status === "IN_PROGRESS" ? "Completar" : "Ver Detalles"}
                     </Button>
