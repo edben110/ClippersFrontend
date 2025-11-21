@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { User } from "@/lib/types"
 import { apiClient } from "@/lib/api"
+import { hashPassword } from "@/lib/utils/crypto"
 
 interface AuthState {
   user: User | null
@@ -33,11 +34,14 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true })
         try {
+          // Hashear la contraseña antes de enviarla
+          const hashedPassword = hashPassword(password)
+          
           const response = await apiClient.post<{
             user: User
             accessToken: string
             refreshToken: string
-          }>("/auth/login", { email, password })
+          }>("/auth/login", { email, password: hashedPassword })
 
           localStorage.setItem("accessToken", response.accessToken)
           localStorage.setItem("refreshToken", response.refreshToken)
@@ -56,11 +60,14 @@ export const useAuthStore = create<AuthState>()(
       register: async (userData: RegisterData) => {
         set({ isLoading: true })
         try {
+          // Hashear la contraseña antes de enviarla
+          const hashedPassword = hashPassword(userData.password)
+          
           const response = await apiClient.post<{
             user: User
             accessToken: string
             refreshToken: string
-          }>("/auth/register", userData)
+          }>("/auth/register", { ...userData, password: hashedPassword })
 
           localStorage.setItem("accessToken", response.accessToken)
           localStorage.setItem("refreshToken", response.refreshToken)
