@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import { usePathname } from "next/navigation"
 import { Navbar } from "./navbar"
 import { useAuthStore } from "@/store/auth-store"
 import { useInactivityLogout } from "@/hooks/use-inactivity-logout"
@@ -8,8 +9,9 @@ import { useInactivityLogout } from "@/hooks/use-inactivity-logout"
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const { checkAuth } = useAuthStore()
   const hasCheckedAuth = useRef(false)
+  const pathname = usePathname()
 
-  // Hook para cerrar sesión por inactividad (30 minutos)
+  // Hook for inactivity logout (30 minutes)
   useInactivityLogout()
 
   useEffect(() => {
@@ -19,9 +21,13 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     }
   }, [checkAuth])
 
+  // No mostrar navbar en páginas de autenticación
+  const isAuthPage = pathname?.startsWith("/auth/")
+  const showNavbar = !isAuthPage
+
   return (
     <>
-      <Navbar />
+      {showNavbar && <Navbar />}
       {children}
     </>
   )

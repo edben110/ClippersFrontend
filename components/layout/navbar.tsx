@@ -30,7 +30,7 @@ export function Navbar() {
     theme = themeContext.theme
     setTheme = themeContext.setTheme
   } catch (e) {
-    // ThemeProvider no disponible aún
+    // ThemeProvider not available yet
   }
 
   const handleLogout = () => {
@@ -48,12 +48,12 @@ export function Navbar() {
     <>
       {/* Top Navbar */}
       <nav className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/40 backdrop-blur-2xl shadow-sm">
-        <div className="container mx-auto px-3 sm:px-4">
-          <div className="flex h-14 sm:h-16 items-center justify-between">
+        <div className="container mx-auto px-2 sm:px-4">
+          <div className="flex h-14 sm:h-16 items-center justify-between gap-2">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-1 sm:space-x-1.5">
-              <Image src="/LogoClipers.png" alt="Clipers" width={64} height={56} className="h-12 w-14 sm:h-14 sm:w-16 rounded-lg object-contain" priority />
-              <span className="text-xl sm:text-2xl font-bold text-foreground">Clipers</span>
+            <Link href="/" className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+              <Image src="/LogoClipers.png" alt="Clipers" width={48} height={48} className="h-10 w-10 sm:h-12 sm:w-14 rounded-lg object-contain" priority />
+              <span className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">Clipers</span>
             </Link>
 
             {/* Navegación centrada - Solo Desktop */}
@@ -83,14 +83,14 @@ export function Navbar() {
             )}
 
             {/* Theme Toggle & Avatar */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
               {/* Theme Toggle Button */}
               {setTheme && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setTheme?.(theme === "dark" ? "light" : "dark")}
-                  className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                  className="h-8 w-8 sm:h-9 sm:w-9 p-0 flex-shrink-0"
                   title={theme === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
                 >
                   {theme === "dark" ? (
@@ -104,7 +104,7 @@ export function Navbar() {
               {isAuthenticated ? (
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <button className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+                    <button className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hover:ring-2 hover:ring-primary/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer flex-shrink-0">
                       <RemoteAvatar
                         src={user?.profileImage}
                         alt={user?.firstName || "Usuario"}
@@ -146,11 +146,11 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" asChild>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Button variant="ghost" size="sm" asChild className="text-xs sm:text-sm px-2 sm:px-4">
                     <Link href="/auth/login">Iniciar sesión</Link>
                   </Button>
-                  <Button asChild>
+                  <Button size="sm" asChild className="text-xs sm:text-sm px-2 sm:px-4">
                     <Link href="/auth/register">Registrarse</Link>
                   </Button>
                 </div>

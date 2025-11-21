@@ -93,7 +93,7 @@ export function EditExperienceModal({ experience, open, onOpenChange }: EditExpe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar experiencia laboral</DialogTitle>
           <DialogDescription>
@@ -102,7 +102,7 @@ export function EditExperienceModal({ experience, open, onOpenChange }: EditExpe
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="position">Cargo *</Label>
               <Input
@@ -125,7 +125,7 @@ export function EditExperienceModal({ experience, open, onOpenChange }: EditExpe
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="startDate">Fecha de inicio *</Label>
               <Input
@@ -186,11 +186,11 @@ export function EditExperienceModal({ experience, open, onOpenChange }: EditExpe
             <p className="text-sm text-muted-foreground">Separa las habilidades con comas</p>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? "Guardando..." : "Actualizar experiencia"}
             </Button>
           </div>

@@ -90,7 +90,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   deleteUserAvatar: async () => {
     try {
       await apiClient.delete<{ status: string }>("/users/profile/avatar")
-      // Recargar el perfil para reflejar la eliminación
+      // Reload profile to reflect deletion
       await get().loadProfile()
     } catch (error) {
       console.error("Error deleting avatar:", error)

@@ -13,10 +13,15 @@ WORKDIR /app
 # 1️⃣ Copiar solo archivos de dependencias primero (mejor cache)
 COPY package.json package-lock.json* pnpm-lock.yaml* ./
 
-# 2️⃣ Instalar dependencias
+# 2️⃣ Instalar dependencias con reintentos y sin frozen-lockfile
 RUN \
   if [ -f pnpm-lock.yaml ]; then \
-    yarn global add pnpm && pnpm i --frozen-lockfile; \
+    yarn global add pnpm && \
+    pnpm config set network-timeout 300000 && \
+    pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-mintimeout 20000 && \
+    pnpm config set fetch-retry-maxtimeout 120000 && \
+    pnpm i --no-frozen-lockfile; \
   elif [ -f package-lock.json ]; then \
     npm ci --legacy-peer-deps; \
   else \

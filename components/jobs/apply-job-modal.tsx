@@ -38,7 +38,7 @@ export function ApplyJobModal({ job, open, onOpenChange, onApply }: ApplyJobModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[95vw] sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Aplicar a {job.title}</DialogTitle>
           <DialogDescription>
@@ -68,16 +68,17 @@ export function ApplyJobModal({ job, open, onOpenChange, onApply }: ApplyJobModa
             </p>
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Enviando..." : "Enviar aplicación"}
             </Button>
           </div>

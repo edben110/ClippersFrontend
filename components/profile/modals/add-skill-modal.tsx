@@ -88,7 +88,7 @@ export function AddSkillModal({ open, onOpenChange }: AddSkillModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="w-[95vw] sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>Agregar habilidad</DialogTitle>
           <DialogDescription>
@@ -143,13 +143,14 @@ export function AddSkillModal({ open, onOpenChange }: AddSkillModalProps) {
             </Select>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading} className="w-full sm:w-auto">
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isLoading || !formData.name.trim() || !formData.level || !formData.category}
+              className="w-full sm:w-auto"
             >
               {isLoading ? "Guardando..." : "Agregar habilidad"}
             </Button>

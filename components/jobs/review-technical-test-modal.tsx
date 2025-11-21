@@ -480,7 +480,7 @@ export function ReviewTechnicalTestModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-[65vw] w-[65vw] max-h-[90vh] overflow-hidden flex flex-col p-0 sm:!max-w-[65vw] bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <DialogContent className="!max-w-[95vw] w-[95vw] sm:!max-w-[80vw] sm:w-[80vw] lg:!max-w-[65vw] lg:w-[65vw] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <DialogHeader className="flex-shrink-0 border-b border-slate-200 dark:border-slate-800 px-8 py-6 bg-gradient-to-r from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

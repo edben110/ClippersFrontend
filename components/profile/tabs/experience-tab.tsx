@@ -108,7 +108,7 @@ export function ExperienceTab({ atsProfile, isOwnProfile }: ExperienceTabProps) 
 
                     {isOwnProfile && (
                       <div className="flex items-center space-x-2 ml-4">
-                        <Button variant="ghost" size="sm" onClick={() => setEditingExperience({ ...experience, index })}>
+                        <Button variant="ghost" size="sm" onClick={() => setEditingExperience(experience)}>
                           <FiEdit3 className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(index.toString())}>

@@ -57,7 +57,7 @@ export function EditATSSummaryModal({ atsProfile, open, onOpenChange }: EditATSS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar resumen profesional</DialogTitle>
           <DialogDescription>
@@ -81,11 +81,11 @@ export function EditATSSummaryModal({ atsProfile, open, onOpenChange }: EditATSS
             </p>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? "Guardando..." : "Actualizar resumen"}
             </Button>
           </div>

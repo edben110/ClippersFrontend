@@ -36,7 +36,7 @@ export default function ClipersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Cargar información de usuarios de los comentarios
+  // Load user information from comments
   useEffect(() => {
     const loadCommentUsers = async () => {
       const userIds = new Set<string>()
@@ -50,7 +50,7 @@ export default function ClipersPage() {
         })
       })
 
-      // Cargar información de usuarios que no están en caché
+      // Load user information not in cache
       const usersToLoad = Array.from(userIds).filter(id => !userCache[id])
       
       if (usersToLoad.length === 0) return
@@ -86,7 +86,7 @@ export default function ClipersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clipers])
 
-  // Cerrar menú al hacer click fuera
+  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = () => setOpenMenuId(null)
     if (openMenuId) {
@@ -367,7 +367,7 @@ export default function ClipersPage() {
                       {cliper.comments && cliper.comments.length > 0 ? (
                         <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4 max-h-48 sm:max-h-60 overflow-y-auto">
                           {cliper.comments.map((comment: any) => {
-                            // Obtener información del usuario desde el caché o usar userName
+                            // Get user info from cache or use userName
                             const commentUser = userCache[comment.userId]
                             const commentUserName = commentUser 
                               ? `${commentUser.firstName} ${commentUser.lastName}`

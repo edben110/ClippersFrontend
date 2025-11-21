@@ -94,28 +94,28 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 py-8 bg-background relative">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8">
         {/* Logo and Header */}
-        <div className="text-center space-y-4">
-          <Link href="/" className="inline-flex items-center space-x-2">
-            <Image src="/LogoClipers.png" alt="Clipers" width={48} height={48} className="h-12 w-12 rounded-xl" />
-            <span className="text-2xl font-bold text-foreground">Clipers</span>
+        <div className="text-center space-y-3 sm:space-y-4">
+          <Link href="/" className="inline-flex items-center justify-center gap-2">
+            <Image src="/LogoClipers.png" alt="Clipers" width={40} height={40} className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl" />
+            <span className="text-xl sm:text-2xl font-bold text-foreground">Clipers</span>
           </Link>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Crea tu cuenta</h1>
-            <p className="text-muted-foreground">Únete a la red profesional del futuro</p>
+          <div className="space-y-1 sm:space-y-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Crea tu cuenta</h1>
+            <p className="text-sm sm:text-base text-muted-foreground px-4">Únete a la red profesional del futuro</p>
           </div>
         </div>
 
         {/* Register Form */}
         <Card className="border-0 shadow-lg">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl">Registro</CardTitle>
-            <CardDescription>Completa tus datos para comenzar</CardDescription>
+          <CardHeader className="space-y-1 pb-3 sm:pb-4 px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">Registro</CardTitle>
+            <CardDescription className="text-sm">Completa tus datos para comenzar</CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <CardContent className="px-4 sm:px-6">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -123,23 +123,23 @@ export default function RegisterPage() {
               )}
 
               {/* Role Selection */}
-              <div className="space-y-3">
-                <Label>Tipo de cuenta</Label>
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-sm">Tipo de cuenta</Label>
                 <RadioGroup
                   value={formData.role}
                   onValueChange={(value) => handleInputChange("role", value)}
-                  className="flex space-x-6"
+                  className="flex flex-col sm:flex-row gap-3 sm:gap-6"
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <RadioGroupItem value="CANDIDATE" id="candidate" />
-                    <Label htmlFor="candidate" className="flex items-center space-x-2 cursor-pointer">
+                    <Label htmlFor="candidate" className="flex items-center gap-2 cursor-pointer text-sm">
                       <FiUser className="h-4 w-4" />
                       <span>Candidato</span>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <RadioGroupItem value="COMPANY" id="company" />
-                    <Label htmlFor="company" className="flex items-center space-x-2 cursor-pointer">
+                    <Label htmlFor="company" className="flex items-center gap-2 cursor-pointer text-sm">
                       <FiBriefcase className="h-4 w-4" />
                       <span>Empresa</span>
                     </Label>
@@ -148,38 +148,41 @@ export default function RegisterPage() {
               </div>
 
               {formData.role === "COMPANY" ? (
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Nombre de la empresa</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="companyName" className="text-sm">Nombre de la empresa</Label>
                   <Input
                     id="companyName"
                     type="text"
                     placeholder="TechCorp S.A."
                     value={formData.companyName}
                     onChange={(e) => handleInputChange("companyName", e.target.value)}
+                    className="h-10 sm:h-11 text-sm sm:text-base"
                     required
                   />
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">Nombre</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="firstName" className="text-sm">Nombre</Label>
                     <Input
                       id="firstName"
                       type="text"
                       placeholder="Juan"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange("firstName", e.target.value)}
+                      className="h-10 sm:h-11 text-sm sm:text-base"
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Apellido</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="lastName" className="text-sm">Apellido</Label>
                     <Input
                       id="lastName"
                       type="text"
                       placeholder="Pérez"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange("lastName", e.target.value)}
+                      className="h-10 sm:h-11 text-sm sm:text-base"
                       required
                     />
                   </div>
@@ -187,41 +190,41 @@ export default function RegisterPage() {
               )}
 
               {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Correo electrónico</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="email" className="text-sm">Correo electrónico</Label>
                 <div className="relative">
-                  <FiMail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="tu@email.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-10 sm:h-11 text-sm sm:text-base"
                     required
                   />
                 </div>
               </div>
 
               {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="password" className="text-sm">Contraseña</Label>
                 <div className="relative">
-                  <FiLock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-12 h-10 sm:h-11 text-sm sm:text-base"
                     required
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -234,24 +237,24 @@ export default function RegisterPage() {
               </div>
 
               {/* Confirm Password */}
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm">Confirmar contraseña</Label>
                 <div className="relative">
-                  <FiLock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-10 pr-12 h-10 sm:h-11 text-sm sm:text-base"
                     required
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
@@ -263,13 +266,13 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={isLoading}>
                 {isLoading ? "Creando cuenta..." : "Crear cuenta"}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="mt-4 sm:mt-6 text-center">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 ¿Ya tienes una cuenta?{" "}
                 <Link href="/auth/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
                   Inicia sesión aquí
@@ -280,14 +283,14 @@ export default function RegisterPage() {
         </Card>
 
         {/* Terms */}
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground">
+        <div className="text-center px-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Al registrarte, aceptas nuestros{" "}
-            <Link href="/terms" className="text-primary hover:text-primary/80">
+            <Link href="/terms" className="text-primary hover:text-primary/80 underline">
               Términos de Servicio
             </Link>{" "}
             y{" "}
-            <Link href="/privacy" className="text-primary hover:text-primary/80">
+            <Link href="/privacy" className="text-primary hover:text-primary/80 underline">
               Política de Privacidad
             </Link>
           </p>

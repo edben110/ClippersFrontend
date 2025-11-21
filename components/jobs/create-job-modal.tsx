@@ -137,7 +137,7 @@ export function CreateJobModal({ open, onOpenChange }: CreateJobModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Publicar nuevo empleo</DialogTitle>
           <DialogDescription>
@@ -297,11 +297,11 @@ export function CreateJobModal({ open, onOpenChange }: CreateJobModalProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Publicando..." : "Publicar empleo"}
             </Button>
           </div>

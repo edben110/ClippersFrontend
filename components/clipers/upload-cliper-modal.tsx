@@ -170,7 +170,7 @@ export function UploadCliperModal({ open, onOpenChange }: UploadCliperModalProps
   if (uploadComplete) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md" aria-describedby="upload-success-description">
+        <DialogContent className="w-[95vw] sm:max-w-md" aria-describedby="upload-success-description">
           <div className="text-center space-y-4 py-8">
             <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto">
               <FiCheck className="h-8 w-8 text-success" />

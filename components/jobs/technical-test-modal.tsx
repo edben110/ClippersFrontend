@@ -624,59 +624,61 @@ export function TechnicalTestModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-[65vw] w-[65vw] max-h-[90vh] overflow-hidden flex flex-col p-0 sm:!max-w-[65vw] bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        <DialogHeader className="flex-shrink-0 border-b border-slate-200 dark:border-slate-800 px-8 py-6 bg-gradient-to-r from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-xl shadow-lg">
-                <span className="text-3xl">📝</span>
+      <DialogContent className="!max-w-[95vw] w-[95vw] sm:!max-w-[80vw] sm:w-[80vw] lg:!max-w-[65vw] lg:w-[65vw] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <DialogHeader className="flex-shrink-0 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 bg-gradient-to-r from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 backdrop-blur-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-start sm:items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl shadow-lg flex-shrink-0">
+                <span className="text-xl sm:text-2xl md:text-3xl">📝</span>
               </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-base sm:text-lg md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent break-words">
                   {isSubmitted ? 'Revisar Prueba Técnica' : 'Prueba Técnica'}
                 </DialogTitle>
                 {isSubmitted && test.candidateName && (
-                  <p className="text-base font-semibold text-slate-700 dark:text-slate-300 mt-2 flex items-center gap-2">
-                    <span className="text-indigo-600 dark:text-indigo-400">👤</span>
-                    Candidato: {test.candidateName}
+                  <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-700 dark:text-slate-300 mt-1 sm:mt-2 flex items-center gap-1 sm:gap-2 break-words">
+                    <span className="text-indigo-600 dark:text-indigo-400 flex-shrink-0">👤</span>
+                    <span className="truncate">Candidato: {test.candidateName}</span>
                   </p>
                 )}
                 {!isSubmitted && test.companyName && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 font-medium">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 sm:mt-2 font-medium break-words">
                     🏢 {test.companyName} • 💼 {test.jobTitle}
                   </p>
                 )}
                 {isSubmitted && test.companyName && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium break-words">
                     🏢 {test.companyName} • 💼 {test.jobTitle}
                   </p>
                 )}
               </div>
             </div>
-            {getStatusBadge()}
+            <div className="flex-shrink-0 self-start sm:self-auto">
+              {getStatusBadge()}
+            </div>
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-8 py-6 bg-gradient-to-b from-transparent to-slate-50/50 dark:to-slate-950/50">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 bg-gradient-to-b from-transparent to-slate-50/50 dark:to-slate-950/50">
           {/* Mensaje de prueba enviada */}
           {isSubmitted && (
-            <div className="mb-8 p-5 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950/30 dark:via-green-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800 rounded-2xl shadow-lg backdrop-blur-sm">
-              <div className="flex items-center gap-4">
-                <div className="bg-gradient-to-br from-emerald-500 to-green-600 p-3 rounded-xl shadow-lg">
-                  <FiCheckCircle className="h-6 w-6 text-white" />
+            <div className="mb-4 sm:mb-6 md:mb-8 p-3 sm:p-4 md:p-5 bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950/30 dark:via-green-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl sm:rounded-2xl shadow-lg backdrop-blur-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                <div className="bg-gradient-to-br from-emerald-500 to-green-600 p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl shadow-lg flex-shrink-0">
+                  <FiCheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-xl bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-base sm:text-lg md:text-xl bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-1">
                     ✓ Prueba Enviada Exitosamente
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                     Las respuestas del candidato se muestran integradas en cada pregunta a continuación.
                   </p>
                 </div>
                 {test.submittedAt && (
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Enviada el</p>
-                    <p className="text-sm font-medium">{new Date(test.submittedAt).toLocaleDateString('es-ES')}</p>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Enviada el</p>
+                    <p className="text-xs sm:text-sm font-medium">{new Date(test.submittedAt).toLocaleDateString('es-ES')}</p>
                   </div>
                 )}
               </div>
@@ -690,35 +692,35 @@ export function TechnicalTestModal({
 
           {/* Response Section - Solo para candidatos que pueden enviar */}
           {canSubmit && !isSubmitted && (
-            <div className="mt-8 pt-6 border-t-2 border-primary/30">
-              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 rounded-lg border-2 border-primary/20 shadow-lg">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="bg-primary/20 p-2 rounded-lg">
-                    <FiSend className="h-5 w-5 text-primary" />
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t-2 border-primary/30">
+              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-3 sm:p-4 md:p-5 rounded-lg border-2 border-primary/20 shadow-lg">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                  <div className="bg-primary/20 p-2 rounded-lg flex-shrink-0">
+                    <FiSend className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-foreground">Resumen de Respuestas</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-base sm:text-lg text-foreground">Resumen de Respuestas</h3>
                     <p className="text-xs text-muted-foreground">
                       {Object.keys(answers).length} pregunta(s) respondida(s)
                     </p>
                   </div>
                   {Object.keys(answers).length > 0 && (
-                    <Badge className="bg-green-500">
+                    <Badge className="bg-green-500 text-xs flex-shrink-0">
                       ✓ {Object.keys(answers).length} respuestas
                     </Badge>
                   )}
                 </div>
                 
                 {Object.keys(answers).length > 0 && (
-                  <div className="bg-card/50 p-4 rounded-lg mb-4 border border-green-500/20">
-                    <p className="text-sm font-medium mb-3 text-green-600 dark:text-green-400">
+                  <div className="bg-card/50 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4 border border-green-500/20">
+                    <p className="text-xs sm:text-sm font-medium mb-2 sm:mb-3 text-green-600 dark:text-green-400">
                       ✓ Has respondido las siguientes preguntas:
                     </p>
                     <div className="space-y-2">
                       {Object.entries(answers).map(([qId, answer]) => (
-                        <div key={qId} className="text-xs bg-card p-3 rounded border">
+                        <div key={qId} className="text-xs bg-card p-2 sm:p-3 rounded border">
                           <span className="font-semibold text-primary">{qId}:</span>{' '}
-                          <span className="text-muted-foreground">
+                          <span className="text-muted-foreground break-words">
                             {answer.length > 100 ? answer.substring(0, 100) + '...' : answer}
                           </span>
                         </div>
@@ -727,9 +729,9 @@ export function TechnicalTestModal({
                   </div>
                 )}
                 
-                <div className="bg-card/50 p-4 rounded-lg mb-4 border border-primary/10">
-                  <p className="text-sm text-muted-foreground mb-2 font-medium">💡 Antes de enviar:</p>
-                  <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                <div className="bg-card/50 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4 border border-primary/10">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 font-medium">💡 Antes de enviar:</p>
+                  <ul className="text-[10px] sm:text-xs text-muted-foreground space-y-1 ml-3 sm:ml-4">
                     <li>• Verifica que hayas respondido todas las preguntas</li>
                     <li>• Revisa tus respuestas de opción múltiple</li>
                     <li>• Asegúrate de que tus respuestas sean claras</li>
@@ -737,40 +739,41 @@ export function TechnicalTestModal({
                   </ul>
                 </div>
                 
-                <div className="mb-4">
-                  <label className="text-sm font-medium mb-2 block">
+                <div className="mb-3 sm:mb-4">
+                  <label className="text-xs sm:text-sm font-medium mb-2 block">
                     📝 Comentarios adicionales (opcional)
                   </label>
                   <Textarea
                     placeholder="Agrega cualquier comentario, aclaración o información adicional que consideres relevante..."
                     value={response}
                     onChange={(e) => setResponse(e.target.value)}
-                    rows={6}
-                    className="font-mono text-sm resize-y border-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    rows={4}
+                    className="font-mono text-xs sm:text-sm resize-y border-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
                 
-                <div className="flex justify-between items-center gap-4 pt-6 border-t">
-                  <div className="flex items-center gap-4">
-                    <p className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 pt-4 sm:pt-6 border-t">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       <span className="font-semibold">{Object.keys(answers).length}</span> respuestas
                     </p>
                     {Object.keys(answers).length > 0 && (
-                      <p className="text-xs text-green-600 dark:text-green-400">
+                      <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
                         ✓ Listo para enviar
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => onOpenChange(false)} className="min-w-[120px]">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                    <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="w-full sm:w-auto text-xs sm:text-sm">
                       💾 Guardar Borrador
                     </Button>
                     <Button 
                       onClick={handleSubmit} 
-                      disabled={isSubmitting || Object.keys(answers).length === 0} 
-                      className="min-w-[150px] bg-primary hover:bg-primary/90"
+                      disabled={isSubmitting || Object.keys(answers).length === 0}
+                      size="sm"
+                      className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-xs sm:text-sm"
                     >
-                      <FiSend className="mr-2 h-4 w-4" />
+                      <FiSend className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       {isSubmitting ? "Enviando..." : "Enviar Respuesta"}
                     </Button>
                   </div>

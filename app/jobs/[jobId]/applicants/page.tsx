@@ -115,134 +115,138 @@ export default function JobApplicantsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-background pb-20 md:pb-8">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push("/jobs")}
-              className="mb-4"
+              className="mb-3 sm:mb-4 text-xs sm:text-sm"
             >
-              <FiArrowLeft className="h-4 w-4 mr-2" />
+              <FiArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Volver a empleos
             </Button>
 
             {loadingJob ? (
               <div className="animate-pulse space-y-2">
-                <div className="h-8 bg-muted rounded w-1/2"></div>
-                <div className="h-4 bg-muted rounded w-1/3"></div>
+                <div className="h-6 sm:h-8 bg-muted rounded w-3/4 sm:w-1/2"></div>
+                <div className="h-3 sm:h-4 bg-muted rounded w-1/2 sm:w-1/3"></div>
               </div>
             ) : job ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-3xl font-bold text-foreground">{job.title}</h1>
-                    <p className="text-muted-foreground">
-                      Gestiona los candidatos que han aplicado a esta oferta
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleAIRanking(false)}
-                      disabled={loadingAI || applicants.length === 0}
-                      variant={aiRankingEnabled ? "default" : "outline"}
-                      className="min-w-[200px]"
-                    >
-                      {loadingAI ? (
-                        <>
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                          Analizando con IA...
-                        </>
-                      ) : aiRankingEnabled ? (
-                        <>
-                          <FiAward className="mr-2 h-4 w-4" />
-                          {hasSavedResults ? "Ranking IA (Guardado)" : "Ranking IA Activo"}
-                        </>
-                      ) : (
-                        <>
-                          <FiBriefcase className="mr-2 h-4 w-4" />
-                          Activar Ranking IA
-                        </>
-                      )}
-                    </Button>
-                    {aiRankingEnabled && (
-                      <Button
-                        onClick={() => handleAIRanking(true)}
-                        disabled={loadingAI}
-                        variant="outline"
-                        size="sm"
-                        title="Recalcular ranking con IA"
-                      >
-                        🔄
-                      </Button>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-2">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground break-words">{job.title}</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Gestiona los candidatos que han aplicado a esta oferta
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => handleAIRanking(false)}
+                    disabled={loadingAI || applicants.length === 0}
+                    variant={aiRankingEnabled ? "default" : "outline"}
+                    size="sm"
+                    className="w-full sm:w-auto text-xs sm:text-sm"
+                  >
+                    {loadingAI ? (
+                      <>
+                        <div className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        <span className="truncate">Analizando con IA...</span>
+                      </>
+                    ) : aiRankingEnabled ? (
+                      <>
+                        <FiAward className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="truncate">{hasSavedResults ? "Ranking IA (Guardado)" : "Ranking IA Activo"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiBriefcase className="mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                        <span className="truncate">Activar Ranking IA</span>
+                      </>
                     )}
-                  </div>
+                  </Button>
+                  {aiRankingEnabled && (
+                    <Button
+                      onClick={() => handleAIRanking(true)}
+                      disabled={loadingAI}
+                      variant="outline"
+                      size="sm"
+                      title="Recalcular ranking con IA"
+                      className="w-full sm:w-auto"
+                    >
+                      🔄 Recalcular
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-foreground">Candidatos</h1>
-                <p className="text-muted-foreground">Empleo no encontrado</p>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Candidatos</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Empleo no encontrado</p>
               </div>
             )}
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
             <Card className="border-2">
-              <CardHeader className="pb-3">
-                <p className="text-sm text-muted-foreground">Total Candidatos</p>
+              <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+                <p className="text-xs sm:text-sm text-muted-foreground">Total</p>
               </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{applicants.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">Postulaciones totales</p>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <p className="text-2xl sm:text-3xl font-bold">{applicants.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Postulaciones</p>
               </CardContent>
             </Card>
             <Card className="border-2 border-warning/20 bg-warning/5">
-              <CardHeader className="pb-3">
-                <p className="text-sm text-muted-foreground">Pendientes</p>
+              <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+                <p className="text-xs sm:text-sm text-muted-foreground">Pendientes</p>
               </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-warning">{pendingApplicants.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">Por revisar</p>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <p className="text-2xl sm:text-3xl font-bold text-warning">{pendingApplicants.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Por revisar</p>
               </CardContent>
             </Card>
             <Card className="border-2 border-success/20 bg-success/5">
-              <CardHeader className="pb-3">
-                <p className="text-sm text-muted-foreground">Aceptados</p>
+              <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+                <p className="text-xs sm:text-sm text-muted-foreground">Aceptados</p>
               </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-success">{acceptedApplicants.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">Candidatos seleccionados</p>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <p className="text-2xl sm:text-3xl font-bold text-success">{acceptedApplicants.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Seleccionados</p>
               </CardContent>
             </Card>
             <Card className="border-2 border-destructive/20 bg-destructive/5">
-              <CardHeader className="pb-3">
-                <p className="text-sm text-muted-foreground">Rechazados</p>
+              <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+                <p className="text-xs sm:text-sm text-muted-foreground">Rechazados</p>
               </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-destructive">{rejectedApplicants.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">No seleccionados</p>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <p className="text-2xl sm:text-3xl font-bold text-destructive">{rejectedApplicants.length}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">No seleccionados</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Applicants Tabs */}
-          <Tabs defaultValue="all" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="all">
-                Todos ({applicants.length})
+          <Tabs defaultValue="all" className="space-y-4 sm:space-y-6">
+            <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4 h-auto gap-1 p-1">
+              <TabsTrigger value="all" className="text-xs sm:text-sm py-2">
+                <span className="hidden sm:inline">Todos</span>
+                <span className="sm:hidden">Todo</span> ({applicants.length})
               </TabsTrigger>
-              <TabsTrigger value="pending">
-                Pendientes ({pendingApplicants.length})
+              <TabsTrigger value="pending" className="text-xs sm:text-sm py-2">
+                <span className="hidden sm:inline">Pendientes</span>
+                <span className="sm:hidden">Pend.</span> ({pendingApplicants.length})
               </TabsTrigger>
-              <TabsTrigger value="accepted">
-                Aceptados ({acceptedApplicants.length})
+              <TabsTrigger value="accepted" className="text-xs sm:text-sm py-2">
+                <span className="hidden sm:inline">Aceptados</span>
+                <span className="sm:hidden">Acep.</span> ({acceptedApplicants.length})
               </TabsTrigger>
-              <TabsTrigger value="rejected">
-                Rechazados ({rejectedApplicants.length})
+              <TabsTrigger value="rejected" className="text-xs sm:text-sm py-2">
+                <span className="hidden sm:inline">Rechazados</span>
+                <span className="sm:hidden">Rech.</span> ({rejectedApplicants.length})
               </TabsTrigger>
             </TabsList>
 

@@ -53,7 +53,7 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
     }
   }, [open, cliper.id, cliper.status, getCliperStatus])
 
-  // Cargar información de usuarios de los comentarios
+  // Load user information from comments
   useEffect(() => {
     const loadCommentUsers = async () => {
       const userIds = new Set<string>()
@@ -161,7 +161,7 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="sr-only">Cliper: {currentCliper.title}</DialogTitle>
         </DialogHeader>
@@ -330,7 +330,7 @@ export function CliperModal({ cliper, open, onOpenChange, showActions = true }: 
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {currentCliper.comments && currentCliper.comments.length > 0 ? (
                     currentCliper.comments.map((comment: any) => {
-                      // Obtener información del usuario desde el caché o usar userName
+                      // Get user info from cache or use userName
                       const commentUser = userCache[comment.userId]
                       const commentUserName = commentUser 
                         ? `${commentUser.firstName} ${commentUser.lastName}`
