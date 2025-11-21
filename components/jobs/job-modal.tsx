@@ -136,7 +136,7 @@ export function JobModal({ job, open, onOpenChange }: JobModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">{job.title}</DialogTitle>
           <DialogDescription>
@@ -144,27 +144,27 @@ export function JobModal({ job, open, onOpenChange }: JobModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="md:col-span-2 space-y-6">
             {/* Company Info */}
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <Avatar className="h-16 w-16 flex-shrink-0">
                 <AvatarImage src={job.company?.logo || "/placeholder.svg"} alt={job.company?.name || "Empresa"} />
                 <AvatarFallback>
                   <FiBriefcase className="h-8 w-8" />
                 </AvatarFallback>
               </Avatar>
-              <div className="space-y-1">
-                <h3 className="text-xl font-semibold">{job.company?.name || "Empresa no especificada"}</h3>
-                <p className="text-muted-foreground">{job.company?.industry || "Industria no especificada"}</p>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <FiMapPin className="h-4 w-4" />
-                    <span>{job.location || "Ubicación no especificada"}</span>
+              <div className="space-y-1 flex-1 min-w-0">
+                <h3 className="text-lg sm:text-xl font-semibold break-words">{job.company?.name || "Empresa no especificada"}</h3>
+                <p className="text-sm text-muted-foreground break-words">{job.company?.industry || "Industria no especificada"}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <FiMapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="break-words">{job.location || "Ubicación no especificada"}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <FiClock className="h-4 w-4" />
+                  <div className="flex items-center gap-1">
+                    <FiClock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                     <span>
                       {formatDistanceToNow(new Date(job.createdAt), {
                         addSuffix: true,

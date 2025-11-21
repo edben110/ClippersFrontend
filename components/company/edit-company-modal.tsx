@@ -143,7 +143,7 @@ export function EditCompanyModal({ open, onOpenChange, company }: EditCompanyMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar perfil de empresa</DialogTitle>
         </DialogHeader>
@@ -381,11 +381,11 @@ export function EditCompanyModal({ open, onOpenChange, company }: EditCompanyMod
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
               {isSubmitting ? "Guardando..." : "Guardar cambios"}
             </Button>
           </div>

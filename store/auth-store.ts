@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true })
         try {
-          // Hashear la contraseña antes de enviarla
+          // Hash password before sending
           const hashedPassword = hashPassword(password)
           
           const response = await apiClient.post<{
@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (userData: RegisterData) => {
         set({ isLoading: true })
         try {
-          // Hashear la contraseña antes de enviarla
+          // Hash password before sending
           const hashedPassword = hashPassword(userData.password)
           
           const response = await apiClient.post<{
